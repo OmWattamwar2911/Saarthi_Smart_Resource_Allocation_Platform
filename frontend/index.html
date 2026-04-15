@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saarthi — NGO Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c12;
+  --bg2: #0d1420;
+  --bg3: #111827;
+  --card: #0f1824;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e8edf5;
+  --muted: #6b7a94;
+  --dim: #3a4560;
+  --accent: #22d3a0;
+  --accent2: #3b82f6;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --pink: #ec4899;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
+body{min-height:100vh;display:flex;overflow-x:hidden}
+
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.logo-wrap{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.logo-mark{font-size:20px;font-weight:700;letter-spacing:-0.5px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
+.nav{padding:12px 10px;flex:1;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:2px;font-weight:400;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.nav-item.active{background:rgba(34,211,160,.1);color:var(--accent);font-weight:500}
+.nav-item .icon{width:16px;text-align:center;font-size:14px}
+.nav-badge{margin-left:auto;font-size:10px;font-weight:600;background:var(--danger);color:#fff;padding:1px 6px;border-radius:99px}
+.nav-section{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);padding:12px 10px 4px}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border)}
+.user-chip{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--border)}
+.avatar{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#22d3a0,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.page{display:none}
+.page.active{display:block}
+.topbar{position:sticky;top:0;z-index:10;background:rgba(8,12,18,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;gap:16px}
+.topbar-title{font-size:15px;font-weight:600}
+.topbar-sub{font-size:12px;color:var(--muted);margin-left:2px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 rgba(34,211,160,.4);animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(34,211,160,.4)}50%{box-shadow:0 0 0 6px rgba(34,211,160,0)}}
+.live-label{font-size:11px;color:var(--accent);font-weight:500;font-family:var(--mono)}
+.btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;border:1px solid var(--border2);background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;font-family:var(--sans);transition:all .15s}
+.btn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-accent{background:var(--accent);color:#001a12;border-color:var(--accent);font-weight:600}
+.btn-accent:hover{background:#1fb88a;border-color:#1fb88a}
+.btn-danger{background:rgba(239,68,68,.15);color:var(--danger);border-color:rgba(239,68,68,.3)}
+.content{padding:24px 28px}
+
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;transition:border-color .2s;cursor:default;animation:fadeUp .4s both}
+.stat-card:hover{border-color:var(--border2)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.stat-icon{font-size:18px;margin-bottom:10px}
+.stat-num{font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1}
+.stat-label{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:.03em}
+.stat-delta{font-size:11px;margin-top:8px;display:flex;align-items:center;gap:4px}
+.delta-up{color:var(--accent)}
+.delta-down{color:var(--danger)}
+.stat-bar{height:3px;background:var(--border);border-radius:99px;margin-top:10px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:99px;transition:width 1s ease}
+
+.grid2{display:grid;grid-template-columns:1fr 360px;gap:16px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;animation:fadeUp .4s both}
+.panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.panel-title{font-size:13px;font-weight:600;flex:1}
+.panel-action{font-size:11px;color:var(--accent);cursor:pointer;font-weight:500;background:none;border:none;font-family:var(--sans)}
+.panel-body{padding:20px}
+
+.map-wrap{position:relative;height:320px;overflow:hidden;background:#05080f}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(59,130,246,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.08) 1px,transparent 1px);background-size:40px 40px}
+.map-glow{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 45% 55%,rgba(34,211,160,.08) 0%,transparent 70%)}
+.heatspot{position:absolute;border-radius:50%;animation:heatpulse 3s ease-in-out infinite}
+@keyframes heatpulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.15);opacity:1}}
+.map-pin{position:absolute;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg);cursor:pointer;transform:translate(-50%,-50%);transition:transform .2s}
+.map-pin:hover{transform:translate(-50%,-50%) scale(1.5)}
+.map-pin.critical{background:var(--danger);box-shadow:0 0 10px rgba(239,68,68,.6)}
+.map-pin.high{background:var(--warn);box-shadow:0 0 8px rgba(245,158,11,.5)}
+.map-pin.med{background:var(--accent2);box-shadow:0 0 6px rgba(59,130,246,.4)}
+.map-pin.low{background:var(--accent)}
+.map-label{position:absolute;font-size:9px;color:rgba(255,255,255,.5);font-family:var(--mono)}
+.map-legend{position:absolute;bottom:14px;left:14px;background:rgba(8,12,18,.8);border:1px solid var(--border);border-radius:8px;padding:8px 12px;display:flex;flex-direction:column;gap:5px}
+.legend-row{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.map-stat{position:absolute;top:14px;right:14px;background:rgba(8,12,18,.85);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:11px}
+.map-stat .ms-num{color:var(--accent);font-size:18px;font-weight:500}
+.map-stat .ms-label{color:var(--muted);font-size:9px;margin-top:1px}
+
+.need-feed{display:flex;flex-direction:column}
+.need-item{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:background .15s;animation:slideIn .3s both}
+.need-item:hover{background:rgba(255,255,255,.02)}
+.need-item:last-child{border-bottom:none}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+.need-urgency{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;font-family:var(--mono)}
+.urg-5{background:rgba(239,68,68,.15);color:var(--danger)}
+.urg-4{background:rgba(245,158,11,.15);color:var(--warn)}
+.urg-3{background:rgba(59,130,246,.15);color:var(--accent2)}
+.urg-2{background:rgba(34,211,160,.1);color:var(--accent)}
+.need-title{font-size:12px;font-weight:500;color:var(--text);line-height:1.4}
+.need-meta{font-size:10px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
+.need-tag{font-size:9px;padding:2px 7px;border-radius:5px;font-weight:500;display:inline-block;margin-top:4px}
+.tag-med{background:rgba(239,68,68,.12);color:#f87171}
+.tag-food{background:rgba(245,158,11,.12);color:#fcd34d}
+.tag-shelter{background:rgba(59,130,246,.12);color:#93c5fd}
+.tag-edu{background:rgba(34,211,160,.1);color:var(--accent)}
+.tag-water{background:rgba(99,102,241,.12);color:#a5b4fc}
+.tag-livelihood{background:rgba(236,72,153,.12);color:#f9a8d4}
+
+.ai-header{background:linear-gradient(135deg,rgba(34,211,160,.08),rgba(59,130,246,.08));border-bottom:1px solid var(--border);padding:16px 20px}
+.ai-title-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.ai-badge{font-size:9px;letter-spacing:.1em;text-transform:uppercase;background:rgba(34,211,160,.15);color:var(--accent);padding:2px 8px;border-radius:99px;font-weight:600;font-family:var(--mono)}
+.match-row{padding:14px 20px;border-bottom:1px solid var(--border);animation:fadeUp .3s both}
+.match-row:last-child{border-bottom:none}
+.match-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.match-need{font-size:12px;font-weight:500;flex:1}
+.match-score{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--accent)}
+.match-bar{height:3px;background:var(--border);border-radius:99px;margin-bottom:8px;overflow:hidden}
+.match-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.match-volunteer{display:flex;align-items:center;gap:8px}
+.vol-avatar{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.vol-name{font-size:11px;color:var(--text)}
+.vol-skill{font-size:10px;color:var(--muted)}
+.match-reason{margin-top:6px;font-size:10px;color:var(--muted);font-style:italic;line-height:1.5;padding:6px 10px;background:rgba(255,255,255,.02);border-radius:6px;border-left:2px solid rgba(34,211,160,.3)}
+
+.chart-wrap{height:140px;position:relative;padding:0 4px}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:4px 4px 0 0;transition:height 1s ease;min-height:4px;cursor:pointer;position:relative}
+.bar:hover{filter:brightness(1.2)}
+.bar-label{font-size:9px;color:var(--muted);font-family:var(--mono)}
+.bar-val{font-size:9px;font-weight:600;font-family:var(--mono)}
+
+.vol-row{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer}
+.vol-row:hover{background:rgba(255,255,255,.02)}
+.vol-row:last-child{border-bottom:none}
+.rank{font-family:var(--mono);font-size:11px;color:var(--dim);width:18px}
+.rank-1{color:#fcd34d}
+.rank-2{color:#94a3b8}
+.rank-3{color:#d97706}
+.vol-info{flex:1}
+.vol-n{font-size:12px;font-weight:500}
+.vol-xp{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.xp-bar{height:2px;background:var(--border);border-radius:99px;margin-top:4px;overflow:hidden;width:80px}
+.xp-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),#3b82f6)}
+.vol-badge{font-size:14px}
+
+.gemini-panel{padding:20px}
+.gemini-prompt{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--muted);font-family:var(--mono);margin-bottom:14px;line-height:1.6}
+.gemini-response{font-size:12px;color:var(--text);line-height:1.7;min-height:80px;white-space:pre-wrap}
+.cursor{display:inline-block;width:2px;height:12px;background:var(--accent);animation:blink .9s step-end infinite;vertical-align:middle;margin-left:1px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.gemini-actions{display:flex;gap:8px;margin-top:14px}
+
+.forecast-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.fday{text-align:center}
+.fday-label{font-size:9px;color:var(--muted);font-family:var(--mono);margin-bottom:5px}
+.fday-bar{height:60px;display:flex;align-items:flex-end;justify-content:center}
+.fday-fill{width:24px;border-radius:4px 4px 0 0;transition:height 1s ease;cursor:pointer}
+.fday-fill:hover{filter:brightness(1.2)}
+.fday-val{font-size:10px;font-family:var(--mono);margin-top:4px;font-weight:500}
+
+.alert-item{display:flex;align-items:flex-start;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border);font-size:11px}
+.alert-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.alert-dot.crit{background:var(--danger);box-shadow:0 0 6px var(--danger)}
+.alert-dot.warn{background:var(--warn)}
+.alert-dot.info{background:var(--accent2)}
+.alert-text{flex:1;color:var(--muted);line-height:1.5}
+.alert-text strong{color:var(--text);font-weight:500}
+.alert-time{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
+
+.report-metric{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.report-metric:last-child{border-bottom:none}
+.report-metric-label{font-size:11px;color:var(--muted)}
+.report-metric-val{font-size:13px;font-weight:600;font-family:var(--mono)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--dim);border-radius:99px}
+
+.delay-1{animation-delay:.1s!important}
+.delay-2{animation-delay:.2s!important}
+.delay-3{animation-delay:.3s!important}
+.delay-4{animation-delay:.4s!important}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px;width:480px;max-height:80vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:20px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;font-family:var(--mono)}
+.form-input,.form-select,.form-textarea{width:100%;padding:10px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:13px;outline:none;transition:border-color .2s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-textarea{resize:vertical;min-height:80px}
+.form-select option{background:var(--bg2)}
+.urgency-selector{display:flex;gap:8px}
+.urg-btn{flex:1;padding:8px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);transition:all .15s;font-family:var(--mono)}
+.urg-btn:hover{border-color:var(--border2);color:var(--text)}
+.urg-btn.selected-5{background:rgba(239,68,68,.15);color:var(--danger);border-color:rgba(239,68,68,.3)}
+.urg-btn.selected-4{background:rgba(245,158,11,.15);color:var(--warn);border-color:rgba(245,158,11,.3)}
+.urg-btn.selected-3{background:rgba(59,130,246,.15);color:var(--accent2);border-color:rgba(59,130,246,.3)}
+.urg-btn.selected-2{background:rgba(34,211,160,.1);color:var(--accent);border-color:rgba(34,211,160,.3)}
+.urg-btn.selected-1{background:rgba(107,122,148,.1);color:var(--muted);border-color:var(--border2)}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+
+/* Volunteer page */
+.vol-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .2s;cursor:pointer}
+.vol-card:hover{border-color:var(--border2)}
+.vol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+.vol-card-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;margin-bottom:12px}
+.vol-card-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.vol-card-role{font-size:11px;color:var(--muted)}
+.vol-card-stats{display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.vol-stat{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.vol-stat span{color:var(--text);font-weight:500}
+.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px}
+.status-available{background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.status-busy{background:var(--warn)}
+.status-offline{background:var(--dim)}
+
+/* Analytics */
+.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.metric-big{font-size:40px;font-weight:700;letter-spacing:-2px}
+.trend-line{height:60px;position:relative;overflow:hidden}
+
+/* Loading spinner */
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(34,211,160,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:2000}
+.toast{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;font-size:12px;animation:toastIn .3s ease;max-width:280px}
+.toast.success{border-left:3px solid var(--accent)}
+.toast.error{border-left:3px solid var(--danger)}
+.toast.info{border-left:3px solid var(--accent2)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Add volunteer form */
+.add-vol-btn{margin-bottom:16px}
+
+/* Needs page table */
+.needs-table{width:100%;border-collapse:collapse}
+.needs-table th{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:10px 16px;border-bottom:1px solid var(--border);text-align:left;font-weight:500}
+.needs-table td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+.needs-table tr:last-child td{border-bottom:none}
+.needs-table tr:hover td{background:rgba(255,255,255,.02)}
+.status-badge{font-size:9px;padding:3px 8px;border-radius:99px;font-weight:600;font-family:var(--mono)}
+.status-open{background:rgba(239,68,68,.12);color:#f87171}
+.status-matched{background:rgba(34,211,160,.1);color:var(--accent)}
+.status-resolved{background:rgba(107,122,148,.1);color:var(--muted)}
+.status-progress{background:rgba(245,158,11,.12);color:var(--warn)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo-wrap">
+    <div class="logo-mark">⬡ Saarthi</div>
+    <div class="logo-sub">NGO Command Center</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Operations</div>
+    <button class="nav-item active" onclick="showPage('dashboard',this)"><span class="icon">◈</span> Dashboard</button>
+    <button class="nav-item" onclick="showPage('needs',this)"><span class="icon">◷</span> Needs Feed <span class="nav-badge" id="badge-needs">47</span></button>
+    <button class="nav-item" onclick="showPage('matching',this)"><span class="icon">⬡</span> AI Matching</button>
+    <button class="nav-section" style="cursor:default;pointer-events:none">People</button>
+    <button class="nav-item" onclick="showPage('volunteers',this)"><span class="icon">◉</span> Volunteers</button>
+    <button class="nav-item" onclick="showPage('leaderboard',this)"><span class="icon">◈</span> Leaderboard</button>
+    <div class="nav-section">Intelligence</div>
+    <button class="nav-item" onclick="showPage('analytics',this)"><span class="icon">◷</span> Analytics</button>
+    <button class="nav-item" onclick="showPage('reports',this)"><span class="icon">⬡</span> Impact Reports</button>
+    <div class="nav-section">System</div>
+    <button class="nav-item" onclick="showPage('alerts',this)"><span class="icon">◈</span> Alerts <span class="nav-badge" id="badge-alerts">3</span></button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="avatar">PK</div>
+      <div>
+        <div class="user-name" style="font-size:12px;font-weight:500">Priya Kapoor</div>
+        <div style="font-size:10px;color:var(--muted)">District Coordinator</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+<!-- ════════════════════════════════ DASHBOARD ════════════════════════════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="topbar">
+    <div>
+      <span class="topbar-title">Barmer District</span>
+      <span class="topbar-sub">— Rajasthan Flood Response</span>
+    </div>
+    <div class="topbar-right">
+      <div class="live-dot"></div>
+      <span class="live-label">LIVE</span>
+      <button class="btn" onclick="openSubmitModal()">+ Submit Need</button>
+      <button class="btn btn-accent" onclick="runAIMatching()">⬡ Run AI Match</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-icon">◈</div>
+        <div class="stat-num" id="open-needs" style="color:var(--danger)">47</div>
+        <div class="stat-label">Open Needs</div>
+        <div class="stat-delta"><span class="delta-up">↑ 8</span><span style="color:var(--dim)"> in last 2 hours</span></div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:78%;background:var(--danger)"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">◉</div>
+        <div class="stat-num" id="vol-avail" style="color:var(--accent)">18</div>
+        <div class="stat-label">Volunteers Available</div>
+        <div class="stat-delta"><span style="color:var(--dim)">6 deployed · 4 en route</span></div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:64%;background:var(--accent)"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⬡</div>
+        <div class="stat-num" id="match-acc" style="color:var(--accent2)">94<span style="font-size:16px;font-weight:400">%</span></div>
+        <div class="stat-label">AI Match Accuracy</div>
+        <div class="stat-delta"><span class="delta-up">↑ 33%</span><span style="color:var(--dim)"> vs manual</span></div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:94%;background:var(--accent2)"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">◷</div>
+        <div class="stat-num" id="people-helped" style="color:var(--warn)">1,240</div>
+        <div class="stat-label">People Helped</div>
+        <div class="stat-delta"><span class="delta-up">+180</span><span style="color:var(--dim)"> this week</span></div>
+        <div class="stat-bar"><div class="stat-bar-fill" style="width:55%;background:var(--warn)"></div></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel delay-1">
+        <div class="panel-header">
+          <div style="font-size:12px">◎</div>
+          <div class="panel-title">Live Need Heatmap — Barmer District</div>
+          <button class="panel-action" onclick="toggleMapLayer()">Toggle Layer</button>
+        </div>
+        <div class="map-wrap" id="map-wrap">
+          <div class="map-grid"></div>
+          <div class="map-glow"></div>
+          <div class="map-label" style="top:18%;left:14%">Balotra</div>
+          <div class="map-label" style="top:35%;left:52%">Barmer</div>
+          <div class="map-label" style="top:62%;left:22%">Siwana</div>
+          <div class="map-label" style="top:72%;left:60%">Dhorimanna</div>
+          <div class="map-label" style="top:20%;left:68%">Pachpadra</div>
+          <div class="heatspot" style="width:120px;height:120px;left:44%;top:28%;background:radial-gradient(circle,rgba(239,68,68,.35) 0%,transparent 70%);transform:translate(-50%,-50%)"></div>
+          <div class="heatspot" style="width:90px;height:90px;left:20%;top:60%;background:radial-gradient(circle,rgba(245,158,11,.3) 0%,transparent 70%);transform:translate(-50%,-50%);animation-delay:.8s"></div>
+          <div class="heatspot" style="width:70px;height:70px;left:65%;top:22%;background:radial-gradient(circle,rgba(245,158,11,.25) 0%,transparent 70%);transform:translate(-50%,-50%);animation-delay:1.4s"></div>
+          <div class="map-pin critical" style="left:44%;top:32%" title="Medical emergency — 23 people"></div>
+          <div class="map-pin critical" style="left:48%;top:40%" title="Food shortage — 140 families"></div>
+          <div class="map-pin high" style="left:19%;top:55%" title="Shelter needed — 80 people"></div>
+          <div class="map-pin high" style="left:66%;top:20%" title="Medical — 12 people"></div>
+          <div class="map-pin high" style="left:34%;top:48%" title="Water scarcity"></div>
+          <div class="map-pin med" style="left:58%;top:65%" title="Education disruption"></div>
+          <div class="map-pin med" style="left:25%;top:35%" title="Food shortage"></div>
+          <div class="map-pin med" style="left:72%;top:50%" title="Shelter"></div>
+          <div class="map-pin low" style="left:82%;top:30%" title="Low urgency"></div>
+          <div class="map-pin low" style="left:50%;top:75%" title="Low urgency"></div>
+          <div id="new-pins"></div>
+          <div class="map-legend">
+            <div class="legend-row"><div class="legend-dot" style="background:var(--danger)"></div>Critical (<span id="crit-count">5</span>)</div>
+            <div class="legend-row"><div class="legend-dot" style="background:var(--warn)"></div>High (18)</div>
+            <div class="legend-row"><div class="legend-dot" style="background:var(--accent2)"></div>Medium (15)</div>
+            <div class="legend-row"><div class="legend-dot" style="background:var(--accent)"></div>Low (9)</div>
+          </div>
+          <div class="map-stat">
+            <div class="ms-num" id="map-count">47</div>
+            <div class="ms-label">ACTIVE NEEDS</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel delay-2" style="max-height:380px;overflow-y:auto">
+        <div class="panel-header">
+          <div style="font-size:12px">◷</div>
+          <div class="panel-title">Incoming Needs</div>
+          <span class="live-label" style="font-size:10px">● LIVE</span>
+        </div>
+        <div class="need-feed" id="need-feed">
+          <div class="need-item">
+            <div class="need-urgency urg-5">5</div>
+            <div><div class="need-title">23 flood survivors need insulin — no medical access</div><div class="need-meta">📍 Barmer Central · 4 min ago</div><span class="need-tag tag-med">Medical</span></div>
+          </div>
+          <div class="need-item">
+            <div class="need-urgency urg-5">5</div>
+            <div><div class="need-title">140 families without food for 48 hrs post-flood</div><div class="need-meta">📍 Barmer East · 11 min ago</div><span class="need-tag tag-food">Food</span></div>
+          </div>
+          <div class="need-item">
+            <div class="need-urgency urg-4">4</div>
+            <div><div class="need-title">80 displaced families need emergency shelter</div><div class="need-meta">📍 Siwana · 28 min ago</div><span class="need-tag tag-shelter">Shelter</span></div>
+          </div>
+          <div class="need-item">
+            <div class="need-urgency urg-4">4</div>
+            <div><div class="need-title">Village water pump submerged — no drinking water</div><div class="need-meta">📍 Pachpadra · 35 min ago</div><span class="need-tag tag-water">Water</span></div>
+          </div>
+          <div class="need-item">
+            <div class="need-urgency urg-3">3</div>
+            <div><div class="need-title">School flooded — 300 children displaced</div><div class="need-meta">📍 Dhorimanna · 52 min ago</div><span class="need-tag tag-edu">Education</span></div>
+          </div>
+          <div class="need-item">
+            <div class="need-urgency urg-3">3</div>
+            <div><div class="need-title">Elderly woman — post-surgical care needed</div><div class="need-meta">📍 Balotra · 1 hr ago</div><span class="need-tag tag-med">Medical</span></div>
+          </div>
+          <div class="need-item">
+            <div class="need-urgency urg-2">2</div>
+            <div><div class="need-title">Crop damage assessment — 12 farmers</div><div class="need-meta">📍 Siwana Rural · 2 hr ago</div><span class="need-tag tag-edu">Livelihood</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="panel delay-1" id="match-panel">
+        <div class="ai-header">
+          <div class="ai-title-row">
+            <span class="panel-title">Gemini AI Matching</span>
+            <span class="ai-badge">Claude AI</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)" id="match-status-line">Last run: 3 min ago · 3 matches shown</div>
+        </div>
+        <div id="match-results">
+          <div class="match-row">
+            <div class="match-header"><div class="match-need">Medical emergency — insulin</div><div class="match-score">97</div></div>
+            <div class="match-bar"><div class="match-bar-fill" style="width:97%"></div></div>
+            <div class="match-volunteer">
+              <div class="vol-avatar" style="background:rgba(239,68,68,.2);color:#f87171">DR</div>
+              <div><div class="vol-name">Dr. Ravi Meena</div><div class="vol-skill">MBBS · 2.1km away</div></div>
+            </div>
+            <div class="match-reason">"Only MBBS-qualified volunteer within 5km. Skills align perfectly with insulin administration."</div>
+          </div>
+          <div class="match-row">
+            <div class="match-header"><div class="match-need">Food shortage — 140 families</div><div class="match-score">91</div></div>
+            <div class="match-bar"><div class="match-bar-fill" style="width:91%"></div></div>
+            <div class="match-volunteer">
+              <div class="vol-avatar" style="background:rgba(245,158,11,.2);color:#fcd34d">SK</div>
+              <div><div class="vol-name">Sunita Kumari</div><div class="vol-skill">Logistics · 0.8km away</div></div>
+            </div>
+            <div class="match-reason">"Logistics background + vehicle access. Closest available to site."</div>
+          </div>
+          <div class="match-row">
+            <div class="match-header"><div class="match-need">Emergency shelter — Siwana</div><div class="match-score">85</div></div>
+            <div class="match-bar"><div class="match-bar-fill" style="width:85%"></div></div>
+            <div class="match-volunteer">
+              <div class="vol-avatar" style="background:rgba(59,130,246,.2);color:#93c5fd">AJ</div>
+              <div><div class="vol-name">Arjun Joshi</div><div class="vol-skill">Civil Eng. · 4.3km away</div></div>
+            </div>
+            <div class="match-reason">"Civil engineering skills ideal for assessing structural safety of emergency shelters."</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel delay-2">
+        <div class="panel-header">
+          <div style="font-size:12px">◈</div>
+          <div class="panel-title">Need Categories Today</div>
+          <button class="panel-action">Export</button>
+        </div>
+        <div class="panel-body">
+          <div class="bar-chart">
+            <div class="bar-col"><div class="bar-val" style="color:var(--danger)">18</div><div class="bar" style="height:72%;background:rgba(239,68,68,.6);border-top:2px solid var(--danger)"></div><div class="bar-label">Med</div></div>
+            <div class="bar-col"><div class="bar-val" style="color:var(--warn)">14</div><div class="bar" style="height:56%;background:rgba(245,158,11,.5);border-top:2px solid var(--warn)"></div><div class="bar-label">Food</div></div>
+            <div class="bar-col"><div class="bar-val" style="color:var(--accent2)">8</div><div class="bar" style="height:32%;background:rgba(59,130,246,.5);border-top:2px solid var(--accent2)"></div><div class="bar-label">Shelt.</div></div>
+            <div class="bar-col"><div class="bar-val" style="color:rgba(99,102,241,.9)">4</div><div class="bar" style="height:16%;background:rgba(99,102,241,.4);border-top:2px solid rgba(99,102,241,.8)"></div><div class="bar-label">Water</div></div>
+            <div class="bar-col"><div class="bar-val" style="color:var(--accent)">3</div><div class="bar" style="height:12%;background:rgba(34,211,160,.3);border-top:2px solid var(--accent)"></div><div class="bar-label">Edu</div></div>
+          </div>
+          <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-family:var(--mono)">7-DAY FORECAST</div>
+            <div class="forecast-grid" id="forecast-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="panel delay-3">
+          <div class="panel-header">
+            <div style="font-size:12px">◉</div>
+            <div class="panel-title">Volunteer Leaderboard</div>
+            <button class="panel-action" onclick="showPage('leaderboard',null)">View All</button>
+          </div>
+          <div id="mini-leaderboard">
+            <div class="vol-row"><div class="rank rank-1">#1</div><div class="vol-avatar" style="background:rgba(252,211,77,.2);color:#fcd34d">SK</div><div class="vol-info"><div class="vol-n">Sunita Kumari</div><div class="vol-xp">2,840 XP · 34 tasks</div><div class="xp-bar"><div class="xp-fill" style="width:94%"></div></div></div><div class="vol-badge">🏆</div></div>
+            <div class="vol-row"><div class="rank rank-2">#2</div><div class="vol-avatar" style="background:rgba(148,163,184,.2);color:#94a3b8">DR</div><div class="vol-info"><div class="vol-n">Dr. Ravi Meena</div><div class="vol-xp">2,610 XP · 28 tasks</div><div class="xp-bar"><div class="xp-fill" style="width:87%"></div></div></div><div class="vol-badge">🥈</div></div>
+            <div class="vol-row"><div class="rank rank-3">#3</div><div class="vol-avatar" style="background:rgba(217,119,6,.2);color:#d97706">AJ</div><div class="vol-info"><div class="vol-n">Arjun Joshi</div><div class="vol-xp">1,920 XP · 21 tasks</div><div class="xp-bar"><div class="xp-fill" style="width:64%"></div></div></div><div class="vol-badge">🥉</div></div>
+          </div>
+        </div>
+        <div class="panel delay-4">
+          <div class="panel-header">
+            <div style="font-size:12px">◷</div>
+            <div class="panel-title">System Alerts</div>
+            <button class="panel-action" onclick="clearAlerts()">Clear All</button>
+          </div>
+          <div id="alert-feed-dash">
+            <div class="alert-item"><div class="alert-dot crit"></div><div class="alert-text"><strong>Critical need spike</strong> — Barmer Central, 3 unmatched medical cases</div><div class="alert-time">2m</div></div>
+            <div class="alert-item"><div class="alert-dot warn"></div><div class="alert-text"><strong>Volunteer capacity</strong> — Zone 3 has 0 available volunteers</div><div class="alert-time">9m</div></div>
+            <div class="alert-item"><div class="alert-dot info"></div><div class="alert-text"><strong>AI</strong> — Impact report generated for Oct 1–14. Ready to download.</div><div class="alert-time">18m</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel delay-1">
+        <div class="ai-header">
+          <div class="ai-title-row">
+            <span class="panel-title">AI Live Reasoning</span>
+            <span class="ai-badge">Streaming</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">Real-time AI volunteer matching analysis</div>
+        </div>
+        <div class="gemini-panel">
+          <div class="gemini-prompt">
+            > Analyzing <span id="gemini-need-count">47</span> open needs across Barmer district...<br>
+            > Loading 18 available volunteer profiles...<br>
+            > Running skill-location-urgency optimization...
+          </div>
+          <div class="gemini-response" id="gemini-text"></div><span class="cursor" id="cursor" style="display:none"></span>
+          <div class="gemini-actions">
+            <button class="btn btn-accent" id="run-gemini-btn" onclick="runAIMatching()">▶ Run AI Analysis</button>
+            <button class="btn" onclick="generateReport()">📄 Generate Report</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel delay-2">
+        <div class="panel-header">
+          <div style="font-size:12px">◈</div>
+          <div class="panel-title">Impact Report · Oct 2024</div>
+          <button class="panel-action" onclick="generateReport()">Generate PDF ↓</button>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <div style="padding:16px 20px">
+            <div class="report-metric"><span class="report-metric-label">Total needs resolved</span><span class="report-metric-val" style="color:var(--accent)">184</span></div>
+            <div class="report-metric"><span class="report-metric-label">People directly helped</span><span class="report-metric-val" style="color:var(--accent)">1,240</span></div>
+            <div class="report-metric"><span class="report-metric-label">Avg. response time</span><span class="report-metric-val" style="color:var(--warn)">38 min</span></div>
+            <div class="report-metric"><span class="report-metric-label">Volunteer hours logged</span><span class="report-metric-val">842 hrs</span></div>
+            <div class="report-metric"><span class="report-metric-label">AI match accuracy</span><span class="report-metric-val" style="color:var(--accent2)">94.2%</span></div>
+            <div class="report-metric"><span class="report-metric-label">Districts covered</span><span class="report-metric-val">8 / 28</span></div>
+          </div>
+          <div style="padding:0 20px 16px">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;font-family:var(--mono)">AI-Written Summary</div>
+            <div id="ai-summary-text" style="font-size:11px;color:var(--muted);line-height:1.7;background:rgba(255,255,255,.02);border-radius:8px;padding:10px 12px;border-left:2px solid rgba(34,211,160,.4)">
+              "In October 2024, Saarthi coordinated 184 crisis interventions across Barmer district following severe flooding. AI-powered matching reduced average volunteer dispatch time from 3.2 hours to 38 minutes — an 80% improvement. Medical needs were prioritized with 97% accuracy..."
+            </div>
+            <button class="btn btn-accent" style="width:100%;margin-top:12px" onclick="downloadReport()">Download Donor Report PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ NEEDS PAGE ════════════════════════════════ -->
+<div class="page" id="page-needs">
+  <div class="topbar">
+    <div><span class="topbar-title">Needs Feed</span><span class="topbar-sub"> — All active needs</span></div>
+    <div class="topbar-right">
+      <div class="live-dot"></div><span class="live-label">LIVE</span>
+      <button class="btn" onclick="openSubmitModal()">+ Submit Need</button>
+    </div>
+  </div>
+  <div class="content">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="btn" style="font-size:11px;background:rgba(239,68,68,.1);color:#f87171;border-color:rgba(239,68,68,.2)" onclick="filterNeeds('all')">All Needs</button>
+      <button class="btn" style="font-size:11px" onclick="filterNeeds('Medical')">Medical</button>
+      <button class="btn" style="font-size:11px" onclick="filterNeeds('Food')">Food</button>
+      <button class="btn" style="font-size:11px" onclick="filterNeeds('Shelter')">Shelter</button>
+      <button class="btn" style="font-size:11px" onclick="filterNeeds('Water')">Water</button>
+      <button class="btn" style="font-size:11px" onclick="filterNeeds('Education')">Education</button>
+    </div>
+    <div class="panel">
+      <table class="needs-table" id="needs-table">
+        <thead>
+          <tr>
+            <th>Urgency</th>
+            <th>Description</th>
+            <th>Location</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="needs-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ AI MATCHING ════════════════════════════════ -->
+<div class="page" id="page-matching">
+  <div class="topbar">
+    <div><span class="topbar-title">AI Matching Engine</span><span class="topbar-sub"> — Powered by Claude AI</span></div>
+    <div class="topbar-right">
+      <button class="btn btn-accent" id="match-page-btn" onclick="runAIMatchingFull()">⬡ Run Full Matching</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="grid2" style="margin-bottom:16px">
+      <div class="panel">
+        <div class="ai-header">
+          <div class="ai-title-row">
+            <span class="panel-title">AI Reasoning Stream</span>
+            <span class="ai-badge">Claude AI</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">Watch the AI reason through every match decision</div>
+        </div>
+        <div class="gemini-panel">
+          <div class="gemini-prompt">
+            > Needs loaded: <span id="match-need-count">7</span> open cases<br>
+            > Volunteers: 18 profiles, 12 available<br>
+            > Optimization: urgency × skill × distance
+          </div>
+          <div class="gemini-response" id="match-ai-text" style="min-height:200px"></div>
+          <span class="cursor" id="match-cursor" style="display:none"></span>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div style="font-size:12px">◉</div><div class="panel-title">Match Summary</div></div>
+        <div class="panel-body">
+          <div class="report-metric"><span class="report-metric-label">Needs analyzed</span><span class="report-metric-val" id="ms-needs">7</span></div>
+          <div class="report-metric"><span class="report-metric-label">Matches made</span><span class="report-metric-val" id="ms-matches" style="color:var(--accent)">—</span></div>
+          <div class="report-metric"><span class="report-metric-label">Avg match score</span><span class="report-metric-val" id="ms-avg" style="color:var(--accent2)">—</span></div>
+          <div class="report-metric"><span class="report-metric-label">Volunteers dispatched</span><span class="report-metric-val" id="ms-dispatched">—</span></div>
+          <div class="report-metric"><span class="report-metric-label">Unmatched critical</span><span class="report-metric-val" id="ms-unmatched" style="color:var(--danger)">—</span></div>
+          <div style="margin-top:16px">
+            <button class="btn btn-accent" style="width:100%" id="match-page-btn2" onclick="runAIMatchingFull()">▶ Run AI Matching Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" id="full-match-panel">
+      <div class="ai-header">
+        <div class="ai-title-row"><span class="panel-title">All Match Results</span><span class="ai-badge">Live Results</span></div>
+        <div style="font-size:11px;color:var(--muted)">Click "Run Full Matching" to see AI-generated matches for all needs</div>
+      </div>
+      <div id="full-match-results">
+        <div style="padding:40px;text-align:center;color:var(--muted);font-size:12px">
+          <div style="font-size:32px;margin-bottom:12px">⬡</div>
+          Run AI Matching to see intelligent volunteer assignments
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ VOLUNTEERS ════════════════════════════════ -->
+<div class="page" id="page-volunteers">
+  <div class="topbar">
+    <div><span class="topbar-title">Volunteers</span><span class="topbar-sub"> — Registered field workers</span></div>
+    <div class="topbar-right">
+      <button class="btn btn-accent" onclick="openAddVolModal()">+ Add Volunteer</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stat-row" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-icon">◉</div><div class="stat-num" style="color:var(--accent)" id="vol-total">18</div><div class="stat-label">Total Registered</div></div>
+      <div class="stat-card"><div class="stat-icon">◷</div><div class="stat-num" style="color:var(--warn)" id="vol-deployed">6</div><div class="stat-label">Currently Deployed</div></div>
+      <div class="stat-card"><div class="stat-icon">◈</div><div class="stat-num" style="color:var(--accent2)" id="vol-offline">4</div><div class="stat-label">Offline / Unavailable</div></div>
+    </div>
+    <div class="vol-grid" id="vol-grid"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ LEADERBOARD ════════════════════════════════ -->
+<div class="page" id="page-leaderboard">
+  <div class="topbar">
+    <div><span class="topbar-title">Volunteer Leaderboard</span><span class="topbar-sub"> — Top performers this month</span></div>
+  </div>
+  <div class="content">
+    <div class="panel">
+      <div class="panel-header"><div style="font-size:12px">◈</div><div class="panel-title">October 2024 Rankings</div></div>
+      <div id="full-leaderboard"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ ANALYTICS ════════════════════════════════ -->
+<div class="page" id="page-analytics">
+  <div class="topbar">
+    <div><span class="topbar-title">Analytics</span><span class="topbar-sub"> — Performance metrics</span></div>
+    <div class="topbar-right">
+      <button class="btn btn-accent" onclick="generateAnalyticsSummary()">⬡ AI Summary</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-icon">◈</div><div class="stat-num" style="color:var(--accent)">184</div><div class="stat-label">Needs Resolved (Oct)</div><div class="stat-bar"><div class="stat-bar-fill" style="width:82%;background:var(--accent)"></div></div></div>
+      <div class="stat-card"><div class="stat-icon">◷</div><div class="stat-num" style="color:var(--warn)">38<span style="font-size:14px;font-weight:400"> min</span></div><div class="stat-label">Avg Response Time</div><div class="stat-bar"><div class="stat-bar-fill" style="width:48%;background:var(--warn)"></div></div></div>
+      <div class="stat-card"><div class="stat-icon">⬡</div><div class="stat-num" style="color:var(--accent2)">94.2<span style="font-size:14px;font-weight:400">%</span></div><div class="stat-label">AI Match Accuracy</div><div class="stat-bar"><div class="stat-bar-fill" style="width:94%;background:var(--accent2)"></div></div></div>
+      <div class="stat-card"><div class="stat-icon">◉</div><div class="stat-num" style="color:var(--danger)">80<span style="font-size:14px;font-weight:400">%</span></div><div class="stat-label">Response Time Reduction</div><div class="stat-bar"><div class="stat-bar-fill" style="width:80%;background:var(--danger)"></div></div></div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-header"><div style="font-size:12px">◈</div><div class="panel-title">Weekly Need Volume</div></div>
+        <div class="panel-body">
+          <div class="bar-chart" style="height:160px">
+            <div class="bar-col"><div class="bar-val" style="color:var(--accent2)">22</div><div class="bar" style="height:42%;background:rgba(59,130,246,.5);border-top:2px solid var(--accent2)"></div><div class="bar-label">W1</div></div>
+            <div class="bar-col"><div class="bar-val" style="color:var(--warn)">31</div><div class="bar" style="height:60%;background:rgba(245,158,11,.4);border-top:2px solid var(--warn)"></div><div class="bar-label">W2</div></div>
+            <div class="bar-col"><div class="bar-val" style="color:var(--danger)">47</div><div class="bar" style="height:90%;background:rgba(239,68,68,.5);border-top:2px solid var(--danger)"></div><div class="bar-label">W3</div></div>
+            <div class="bar-col"><div class="bar-val" style="color:var(--warn)">38</div><div class="bar" style="height:73%;background:rgba(245,158,11,.4);border-top:2px solid var(--warn)"></div><div class="bar-label">W4</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div style="font-size:12px">⬡</div><div class="panel-title">AI Analytics Summary</div></div>
+        <div class="gemini-panel" style="padding:16px">
+          <div class="gemini-response" id="analytics-ai-text" style="min-height:120px;font-size:11px">Click "AI Summary" to generate an intelligent analysis of your performance metrics.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ IMPACT REPORTS ════════════════════════════════ -->
+<div class="page" id="page-reports">
+  <div class="topbar">
+    <div><span class="topbar-title">Impact Reports</span><span class="topbar-sub"> — Donor-ready summaries</span></div>
+    <div class="topbar-right">
+      <button class="btn btn-accent" onclick="generateFullReport()">⬡ Generate AI Report</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-header"><div style="font-size:12px">◈</div><div class="panel-title">October 2024 — Barmer District</div></div>
+        <div style="padding:0 0 16px">
+          <div style="padding:16px 20px"><div class="report-metric"><span class="report-metric-label">Total needs resolved</span><span class="report-metric-val" style="color:var(--accent)">184</span></div><div class="report-metric"><span class="report-metric-label">People directly helped</span><span class="report-metric-val" style="color:var(--accent)">1,240</span></div><div class="report-metric"><span class="report-metric-label">Avg. response time</span><span class="report-metric-val" style="color:var(--warn)">38 min</span></div><div class="report-metric"><span class="report-metric-label">Volunteer hours logged</span><span class="report-metric-val">842 hrs</span></div><div class="report-metric"><span class="report-metric-label">AI match accuracy</span><span class="report-metric-val" style="color:var(--accent2)">94.2%</span></div><div class="report-metric"><span class="report-metric-label">Districts covered</span><span class="report-metric-val">8 / 28</span></div></div>
+          <div style="padding:0 20px">
+            <button class="btn btn-accent" style="width:100%" onclick="downloadReport()">Download Full PDF Report</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="ai-header">
+          <div class="ai-title-row"><span class="panel-title">AI-Generated Executive Summary</span><span class="ai-badge">Claude AI</span></div>
+          <div style="font-size:11px;color:var(--muted)">Donor-ready narrative, auto-generated</div>
+        </div>
+        <div class="gemini-panel">
+          <div class="gemini-response" id="report-ai-text" style="min-height:200px;font-size:11px">
+In October 2024, Saarthi coordinated 184 crisis interventions across Barmer district following severe flooding. AI-powered matching reduced average volunteer dispatch time from 3.2 hours to 38 minutes — an 80% improvement. Medical needs were prioritized with 97% accuracy...
+
+Click "Generate AI Report" for a full donor-ready narrative.
+          </div>
+          <div class="gemini-actions">
+            <button class="btn btn-accent" onclick="generateFullReport()">▶ Generate Full Report</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ ALERTS ════════════════════════════════ -->
+<div class="page" id="page-alerts">
+  <div class="topbar">
+    <div><span class="topbar-title">System Alerts</span><span class="topbar-sub"> — Notifications &amp; warnings</span></div>
+    <div class="topbar-right">
+      <button class="btn" onclick="clearAlerts()">Clear All</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="panel">
+      <div class="panel-header"><div style="font-size:12px">◷</div><div class="panel-title">All Alerts</div><span id="alert-count-badge" class="nav-badge">3</span></div>
+      <div id="full-alert-feed">
+        <div class="alert-item"><div class="alert-dot crit"></div><div class="alert-text"><strong>Critical need spike</strong> — Barmer Central, 3 unmatched medical cases</div><div class="alert-time">2m ago</div></div>
+        <div class="alert-item"><div class="alert-dot warn"></div><div class="alert-text"><strong>Volunteer capacity</strong> — Zone 3 has 0 available volunteers</div><div class="alert-time">9m ago</div></div>
+        <div class="alert-item"><div class="alert-dot info"></div><div class="alert-text"><strong>AI Engine</strong> — Impact report generated for Oct 1–14. Ready to download.</div><div class="alert-time">18m ago</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ════════════════════════════════ SUBMIT NEED MODAL ════════════════════════════════ -->
+<div class="modal-overlay" id="submit-modal">
+  <div class="modal">
+    <div class="modal-title">📍 Submit Community Need</div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-textarea" id="need-desc" placeholder="Describe the need in detail..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Location</label>
+      <input class="form-input" id="need-location" placeholder="e.g. Barmer Central, Block 4">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-select" id="need-category">
+        <option value="Medical">Medical</option>
+        <option value="Food">Food</option>
+        <option value="Shelter">Shelter</option>
+        <option value="Water">Water</option>
+        <option value="Education">Education</option>
+        <option value="Livelihood">Livelihood</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Urgency Level</label>
+      <div class="urgency-selector">
+        <button class="urg-btn" onclick="selectUrgency(1)" id="urg-1">1</button>
+        <button class="urg-btn" onclick="selectUrgency(2)" id="urg-2">2</button>
+        <button class="urg-btn" onclick="selectUrgency(3)" id="urg-3">3</button>
+        <button class="urg-btn selected-4" onclick="selectUrgency(4)" id="urg-4">4</button>
+        <button class="urg-btn" onclick="selectUrgency(5)" id="urg-5">5</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">People Affected (approx.)</label>
+      <input class="form-input" id="need-people" type="number" placeholder="e.g. 50">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" style="flex:1" onclick="submitNeed()">Submit Need</button>
+      <button class="btn" onclick="closeModal('submit-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD VOLUNTEER MODAL -->
+<div class="modal-overlay" id="add-vol-modal">
+  <div class="modal">
+    <div class="modal-title">◉ Add Volunteer</div>
+    <div class="form-group">
+      <label class="form-label">Full Name</label>
+      <input class="form-input" id="vol-name-input" placeholder="e.g. Raj Sharma">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone</label>
+      <input class="form-input" id="vol-phone-input" placeholder="+91 98765 43210">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Skills</label>
+      <input class="form-input" id="vol-skills-input" placeholder="e.g. Medical, Logistics, Civil Engineering">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Area / Zone</label>
+      <input class="form-input" id="vol-area-input" placeholder="e.g. Barmer Central">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-accent" style="flex:1" onclick="addVolunteer()">Add Volunteer</button>
+      <button class="btn" onclick="closeModal('add-vol-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// DATA STORE
+// ══════════════════════════════════════════════════════════════
+let selectedUrgency = 4;
+
+const allNeeds = [
+  {id:1,urgency:5,desc:'23 flood survivors need insulin — no medical access',location:'Barmer Central',category:'Medical',status:'open',time:'4 min ago',people:23},
+  {id:2,urgency:5,desc:'140 families without food for 48 hrs post-flood',location:'Barmer East',category:'Food',status:'matched',time:'11 min ago',people:560},
+  {id:3,urgency:4,desc:'80 displaced families need emergency shelter',location:'Siwana',category:'Shelter',status:'open',time:'28 min ago',people:240},
+  {id:4,urgency:4,desc:'Village water pump submerged — no drinking water',location:'Pachpadra',category:'Water',status:'open',time:'35 min ago',people:120},
+  {id:5,urgency:3,desc:'School flooded — 300 children displaced',location:'Dhorimanna',category:'Education',status:'in_progress',time:'52 min ago',people:300},
+  {id:6,urgency:3,desc:'Elderly woman — post-surgical care needed',location:'Balotra',category:'Medical',status:'open',time:'1 hr ago',people:1},
+  {id:7,urgency:2,desc:'Crop damage assessment — 12 farmers',location:'Siwana Rural',category:'Livelihood',status:'resolved',time:'2 hr ago',people:12},
+];
+
+const volunteers = [
+  {id:1,name:'Sunita Kumari',initials:'SK',skills:'Logistics, Transport',area:'Barmer East',tasks:34,xp:2840,status:'available',color:'rgba(252,211,77,.2)',tc:'#fcd34d'},
+  {id:2,name:'Dr. Ravi Meena',initials:'DR',skills:'MBBS, Emergency Care',area:'Barmer Central',tasks:28,xp:2610,status:'deployed',color:'rgba(148,163,184,.2)',tc:'#94a3b8'},
+  {id:3,name:'Arjun Joshi',initials:'AJ',skills:'Civil Engineering, Construction',area:'Siwana',tasks:21,xp:1920,status:'available',color:'rgba(217,119,6,.2)',tc:'#d97706'},
+  {id:4,name:'Preethi Menon',initials:'PM',skills:'Nutrition, Healthcare',area:'Dhorimanna',tasks:17,xp:1455,status:'available',color:'rgba(34,211,160,.1)',tc:'#22d3a0'},
+  {id:5,name:'Vikram Singh',initials:'VS',skills:'Transport, Coordination',area:'Pachpadra',tasks:14,xp:1200,status:'deployed',color:'rgba(59,130,246,.2)',tc:'#93c5fd'},
+  {id:6,name:'Anita Patel',initials:'AP',skills:'Education, Counselling',area:'Balotra',tasks:11,xp:980,status:'available',color:'rgba(236,72,153,.2)',tc:'#f9a8d4'},
+  {id:7,name:'Mohammed Farooq',initials:'MF',skills:'Water & Sanitation',area:'Barmer North',tasks:9,xp:820,status:'offline',color:'rgba(99,102,241,.2)',tc:'#a5b4fc'},
+  {id:8,name:'Kavya Reddy',initials:'KR',skills:'Social Work, Relief',area:'Barmer South',tasks:7,xp:640,status:'available',color:'rgba(34,211,160,.15)',tc:'#6ee7b7'},
+  {id:9,name:'Suresh Bishnoi',initials:'SB',skills:'Agriculture, Livelihood',area:'Siwana Rural',tasks:5,xp:450,status:'offline',color:'rgba(245,158,11,.2)',tc:'#fcd34d'},
+];
+
+let needCount = 47;
+let alertCount = 3;
+let matchingRunning = false;
+const API_BASE = window.SAARTHI_API_BASE || `${window.location.protocol}//${window.location.hostname}:5000`;
+
+const volunteerColors = [
+  { color: 'rgba(252,211,77,.2)', tc: '#fcd34d' },
+  { color: 'rgba(148,163,184,.2)', tc: '#94a3b8' },
+  { color: 'rgba(217,119,6,.2)', tc: '#d97706' },
+  { color: 'rgba(34,211,160,.1)', tc: '#22d3a0' },
+  { color: 'rgba(59,130,246,.2)', tc: '#93c5fd' },
+  { color: 'rgba(236,72,153,.2)', tc: '#f9a8d4' },
+  { color: 'rgba(99,102,241,.2)', tc: '#a5b4fc' }
+];
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    ...options
+  });
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(errText || `API failed: ${path}`);
+  }
+  return response.json();
+}
+
+function decorateVolunteers(list) {
+  return list.map((vol, idx) => {
+    const c = volunteerColors[idx % volunteerColors.length];
+    return { ...vol, color: c.color, tc: c.tc };
+  });
+}
+
+function syncNeedCounters() {
+  needCount = allNeeds.filter(n => n.status !== 'resolved').length;
+  const openNeeds = allNeeds.filter(n => n.status === 'open').length;
+
+  const openEl = document.getElementById('open-needs');
+  const mapEl = document.getElementById('map-count');
+  const badgeEl = document.getElementById('badge-needs');
+  const geminiCountEl = document.getElementById('gemini-need-count');
+  const matchNeedCountEl = document.getElementById('match-need-count');
+
+  if (openEl) openEl.textContent = openNeeds;
+  if (mapEl) mapEl.textContent = needCount;
+  if (badgeEl) badgeEl.textContent = needCount;
+  if (geminiCountEl) geminiCountEl.textContent = needCount;
+  if (matchNeedCountEl) matchNeedCountEl.textContent = needCount;
+}
+
+function renderNeedFeed() {
+  const feed = document.getElementById('need-feed');
+  if (!feed) return;
+
+  const tagMap = {
+    medical: 'tag-med',
+    food: 'tag-food',
+    shelter: 'tag-shelter',
+    water: 'tag-water',
+    education: 'tag-edu',
+    livelihood: 'tag-livelihood'
+  };
+
+  const shown = allNeeds.slice(0, 8);
+  feed.innerHTML = shown
+    .map((need) => {
+      const urgency = Math.max(1, Math.min(5, Number(need.urgency) || 3));
+      const tagClass = tagMap[String(need.category || '').toLowerCase()] || 'tag-edu';
+      return `<div class="need-item"><div class="need-urgency urg-${Math.min(urgency, 5)}">${urgency}</div><div><div class="need-title">${need.desc}</div><div class="need-meta">📍 ${need.location} · ${need.time || 'just now'}</div><span class="need-tag ${tagClass}">${need.category || 'General'}</span></div></div>`;
+    })
+    .join('');
+}
+
+function syncVolunteerCounters() {
+  const totalRegistered = volunteers.filter(v => v.status !== 'offline').length;
+  const availableCount = volunteers.filter(v => v.status === 'available').length;
+  const deployedCount = volunteers.filter(v => v.status === 'deployed').length;
+  const offlineCount = volunteers.filter(v => v.status === 'offline').length;
+
+  const totalEl = document.getElementById('vol-total');
+  const availEl = document.getElementById('vol-avail');
+  const deployedEl = document.getElementById('vol-deployed');
+  const offlineEl = document.getElementById('vol-offline');
+
+  if (totalEl) totalEl.textContent = totalRegistered;
+  if (availEl) availEl.textContent = availableCount;
+  if (deployedEl) deployedEl.textContent = deployedCount;
+  if (offlineEl) offlineEl.textContent = offlineCount;
+}
+
+async function hydrateFromBackend() {
+  try {
+    const [needs, vols] = await Promise.all([
+      apiRequest('/api/needs'),
+      apiRequest('/api/volunteers')
+    ]);
+
+    allNeeds.splice(0, allNeeds.length, ...needs);
+    volunteers.splice(0, volunteers.length, ...decorateVolunteers(vols));
+
+    syncNeedCounters();
+    syncVolunteerCounters();
+    renderNeedFeed();
+    renderNeedsTable('all');
+    renderVolunteers();
+    renderLeaderboard();
+  } catch (error) {
+    console.error(error);
+    toast('Backend not reachable. Running local demo mode.', 'error');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+function showPage(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (page === 'volunteers') renderVolunteers();
+  if (page === 'needs') renderNeedsTable('all');
+  if (page === 'leaderboard') renderLeaderboard();
+}
+
+// ══════════════════════════════════════════════════════════════
+// FORECAST CHART
+// ══════════════════════════════════════════════════════════════
+const forecastDays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const forecastVals = [22,31,47,38,52,44,29];
+const maxF = Math.max(...forecastVals);
+const fg = document.getElementById('forecast-grid');
+forecastDays.forEach((d,i) => {
+  const pct = forecastVals[i]/maxF;
+  const col = pct > 0.8 ? 'var(--danger)' : pct > 0.6 ? 'var(--warn)' : 'var(--accent2)';
+  fg.innerHTML += `<div class="fday"><div class="fday-label">${d}</div><div class="fday-bar"><div class="fday-fill" style="height:${Math.round(pct*60)}px;background:${col};opacity:0.7"></div></div><div class="fday-val" style="color:${col}">${forecastVals[i]}</div></div>`;
+});
+
+// ══════════════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════════════
+function toast(msg, type='info') {
+  const tc = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  tc.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════════════════════
+function openSubmitModal() { document.getElementById('submit-modal').classList.add('open'); }
+function openAddVolModal() { document.getElementById('add-vol-modal').classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
+
+function selectUrgency(n) {
+  selectedUrgency = n;
+  for (let i=1;i<=5;i++) {
+    const b = document.getElementById('urg-'+i);
+    b.className = 'urg-btn';
+    if (i === n) b.classList.add('selected-'+n);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// SUBMIT NEED
+// ══════════════════════════════════════════════════════════════
+async function submitNeed() {
+  const desc = document.getElementById('need-desc').value.trim();
+  const loc = document.getElementById('need-location').value.trim();
+  const cat = document.getElementById('need-category').value;
+  const people = document.getElementById('need-people').value;
+  if (!desc || !loc) { toast('Please fill in description and location', 'error'); return; }
+
+  try {
+    const newNeed = await apiRequest('/api/needs', {
+      method: 'POST',
+      body: JSON.stringify({
+        desc,
+        location: loc,
+        category: cat,
+        urgency: selectedUrgency,
+        people: parseInt(people, 10) || 0
+      })
+    });
+
+    allNeeds.unshift(newNeed);
+    syncNeedCounters();
+    renderNeedFeed();
+    renderNeedsTable('all');
+  } catch (error) {
+    console.error(error);
+    toast('Failed to submit need. Please check backend.', 'error');
+    return;
+  }
+
+  // Add map pin
+  const pins = document.getElementById('new-pins');
+  const cls = selectedUrgency >= 5 ? 'critical' : selectedUrgency >= 4 ? 'high' : selectedUrgency >= 3 ? 'med' : 'low';
+  const lx = 20 + Math.random()*60;
+  const ly = 20 + Math.random()*60;
+  pins.innerHTML += `<div class="map-pin ${cls}" style="left:${lx}%;top:${ly}%" title="${desc}"></div>`;
+
+  if (selectedUrgency === 5) {
+    const af = document.getElementById('alert-feed-dash');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert-item';
+    alertDiv.innerHTML = `<div class="alert-dot crit"></div><div class="alert-text"><strong>Critical need submitted</strong> — ${desc} (${loc})</div><div class="alert-time">now</div>`;
+    af.insertBefore(alertDiv, af.firstChild);
+    alertCount++;
+    document.getElementById('badge-alerts').textContent = alertCount;
+    document.getElementById('alert-count-badge').textContent = alertCount;
+  }
+
+  closeModal('submit-modal');
+  document.getElementById('need-desc').value = '';
+  document.getElementById('need-location').value = '';
+  document.getElementById('need-people').value = '';
+  toast('Need submitted successfully!', 'success');
+}
+
+// ══════════════════════════════════════════════════════════════
+// ADD VOLUNTEER
+// ══════════════════════════════════════════════════════════════
+async function addVolunteer() {
+  const name = document.getElementById('vol-name-input').value.trim();
+  const skills = document.getElementById('vol-skills-input').value.trim();
+  const area = document.getElementById('vol-area-input').value.trim();
+  if (!name) { toast('Please enter volunteer name', 'error'); return; }
+
+  try {
+    await apiRequest('/api/volunteers', {
+      method: 'POST',
+      body: JSON.stringify({ name, skills: skills || 'General', area: area || 'Barmer' })
+    });
+
+    const latestVols = await apiRequest('/api/volunteers');
+    volunteers.splice(0, volunteers.length, ...decorateVolunteers(latestVols));
+    syncVolunteerCounters();
+    renderVolunteers();
+    renderLeaderboard();
+  } catch (error) {
+    console.error(error);
+    toast('Failed to add volunteer. Please check backend.', 'error');
+    return;
+  }
+
+  closeModal('add-vol-modal');
+  document.getElementById('vol-name-input').value='';
+  document.getElementById('vol-phone-input').value='';
+  document.getElementById('vol-skills-input').value='';
+  document.getElementById('vol-area-input').value='';
+  toast(`${name} added as a volunteer!`, 'success');
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDER VOLUNTEERS
+// ══════════════════════════════════════════════════════════════
+function renderVolunteers() {
+  const grid = document.getElementById('vol-grid');
+  grid.innerHTML = '';
+  volunteers.forEach(v => {
+    const statusDotClass = v.status==='available'?'status-available':v.status==='deployed'?'status-busy':'status-offline';
+    const statusLabel = v.status==='available'?'Available':v.status==='deployed'?'Deployed':'Offline';
+    grid.innerHTML += `<div class="vol-card">
+      <div class="vol-card-avatar" style="background:${v.color};color:${v.tc}">${v.initials}</div>
+      <div class="vol-card-name">${v.name}</div>
+      <div class="vol-card-role">${v.skills}</div>
+      <div style="font-size:10px;margin-top:6px;color:var(--muted)">📍 ${v.area}</div>
+      <div class="vol-card-stats">
+        <div class="vol-stat"><span>${v.tasks}</span> tasks</div>
+        <div class="vol-stat"><span>${v.xp}</span> XP</div>
+        <div class="vol-stat"><span class="status-dot ${statusDotClass}"></span>${statusLabel}</div>
+      </div>
+    </div>`;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDER LEADERBOARD
+// ══════════════════════════════════════════════════════════════
+function renderLeaderboard() {
+  const sorted = [...volunteers].sort((a,b)=>b.xp-a.xp);
+  const el = document.getElementById('full-leaderboard');
+  const medals = ['🏆','🥈','🥉'];
+  el.innerHTML = sorted.map((v,i) => {
+    const pct = Math.round(v.xp / sorted[0].xp * 100);
+    return `<div class="vol-row">
+      <div class="rank ${i<3?'rank-'+(i+1):''}">#${i+1}</div>
+      <div class="vol-avatar" style="width:32px;height:32px;border-radius:8px;background:${v.color};color:${v.tc};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${v.initials}</div>
+      <div class="vol-info" style="flex:1">
+        <div class="vol-n">${v.name}</div>
+        <div class="vol-xp">${v.xp.toLocaleString()} XP · ${v.tasks} tasks · ${v.area}</div>
+        <div class="xp-bar" style="width:200px;margin-top:4px"><div class="xp-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="vol-badge">${medals[i] || '⭐'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDER NEEDS TABLE
+// ══════════════════════════════════════════════════════════════
+function renderNeedsTable(filterCat) {
+  const tbody = document.getElementById('needs-tbody');
+  const filtered = filterCat === 'all' ? allNeeds : allNeeds.filter(n=>n.category===filterCat);
+  const urgClass = {5:'urg-5',4:'urg-4',3:'urg-3',2:'urg-2',1:'urg-2'};
+  const statusClass = {open:'status-open',matched:'status-matched',resolved:'status-resolved',in_progress:'status-progress'};
+  const statusLabel = {open:'Open',matched:'Matched',resolved:'Resolved',in_progress:'In Progress'};
+  tbody.innerHTML = filtered.map(n => `<tr>
+    <td><div class="need-urgency ${urgClass[n.urgency]}" style="display:inline-flex">${n.urgency}</div></td>
+    <td style="max-width:280px">${n.desc}</td>
+    <td style="color:var(--muted)">📍 ${n.location}</td>
+    <td><span class="need-tag tag-${n.category.toLowerCase()}">${n.category}</span></td>
+    <td><span class="status-badge ${statusClass[n.status]}">${statusLabel[n.status]}</span></td>
+    <td style="color:var(--muted);font-family:var(--mono)">${n.time}</td>
+    <td><button class="btn" style="font-size:10px;padding:4px 8px" onclick="markResolved(${n.id})">Resolve</button></td>
+  </tr>`).join('');
+}
+
+function filterNeeds(cat) { renderNeedsTable(cat); }
+
+async function markResolved(id) {
+  try {
+    const updated = await apiRequest(`/api/needs/${id}/resolve`, { method: 'PATCH' });
+    const n = allNeeds.find(x => Number(x.id) === Number(id));
+    if (n) {
+      Object.assign(n, updated);
+    }
+    syncNeedCounters();
+    renderNeedFeed();
+    renderNeedsTable('all');
+    toast('Need marked as resolved', 'success');
+  } catch (error) {
+    console.error(error);
+    toast('Failed to resolve need. Please check backend.', 'error');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// TYPING ANIMATION HELPER
+// ══════════════════════════════════════════════════════════════
+function typeText(elId, text, speed=15, cursorId=null) {
+  const el = document.getElementById(elId);
+  const cursor = cursorId ? document.getElementById(cursorId) : null;
+  el.textContent = '';
+  if (cursor) cursor.style.display = 'inline-block';
+  let i = 0;
+  return new Promise(resolve => {
+    const t = setInterval(() => {
+      if (i < text.length) { el.textContent += text[i++]; }
+      else { clearInterval(t); if (cursor) cursor.style.display='none'; resolve(); }
+    }, speed);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// AI API CALL (VIA LOCAL BACKEND)
+// ══════════════════════════════════════════════════════════════
+async function callClaude(prompt, systemPrompt) {
+  const response = await fetch(`${API_BASE}/api/ai/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt,
+      systemPrompt: systemPrompt || 'You are Saarthi, an AI system helping NGO coordinators during disaster relief operations in India. Be concise, analytical, and empathetic. Use specific names and numbers from the data provided.'
+    })
+  });
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(errText || 'AI request failed');
+  }
+  const data = await response.json();
+  if (data.text) return data.text;
+  throw new Error('No response from AI');
+}
+
+// ══════════════════════════════════════════════════════════════
+// AI MATCHING (DASHBOARD)
+// ══════════════════════════════════════════════════════════════
+async function runAIMatching() {
+  if (matchingRunning) return;
+  matchingRunning = true;
+
+  const btn = document.getElementById('run-gemini-btn');
+  btn.innerHTML = '<span class="spinner"></span>Analyzing...';
+  btn.disabled = true;
+
+  document.getElementById('match-status-line').textContent = 'Running AI analysis...';
+  document.getElementById('cursor').style.display = 'inline-block';
+  document.getElementById('gemini-text').textContent = '';
+
+  const openNeeds = allNeeds.filter(n => n.status === 'open').slice(0, 5);
+  const availVols = volunteers.filter(v => v.status === 'available').slice(0, 6);
+
+  const prompt = `You are analyzing a flood relief operation in Barmer, Rajasthan.
+
+OPEN NEEDS:
+${openNeeds.map((n,i) => `${i+1}. [Urgency ${n.urgency}/5] ${n.desc} — Location: ${n.location}, People: ${n.people}, Category: ${n.category}`).join('\n')}
+
+AVAILABLE VOLUNTEERS:
+${availVols.map((v,i) => `${i+1}. ${v.name} — Skills: ${v.skills}, Area: ${v.area}, XP: ${v.xp}`).join('\n')}
+
+For each need, identify the best volunteer match. Format your response as a clear step-by-step analysis showing:
+- Which need you are analyzing
+- Which volunteer you matched and the match score (0-100)
+- A short reasoning (1 sentence)
+
+End with a summary line like: "✦ X matches made. Dispatching SMS alerts..."
+
+Keep it concise and realistic. Use the actual names from the data.`;
+
+  try {
+    const aiText = await callClaude(prompt);
+    await typeText('gemini-text', aiText, 12, 'cursor');
+
+    // Parse matches and update the match panel
+    document.getElementById('match-status-line').textContent = `Last run: just now · ${openNeeds.length} needs analyzed`;
+
+    // Generate match cards from AI response
+    updateMatchPanel(openNeeds, availVols, aiText);
+    toast('AI matching complete!', 'success');
+  } catch (err) {
+    const fallback = `Analyzing ${openNeeds.length} open needs across Barmer district...\n\nNeed #1: 23 flood survivors need insulin\n→ Best match: Dr. Ravi Meena (MBBS, 2.1km). Score: 97/100\nReasoning: Only medically qualified volunteer within 5km.\n\nNeed #2: 140 families without food\n→ Best match: Sunita Kumari (Logistics, 0.8km). Score: 91/100\nReasoning: Logistics skills + vehicle access critical for bulk distribution.\n\n✦ ${openNeeds.length} needs analyzed. Dispatching SMS alerts to volunteers...`;
+    await typeText('gemini-text', fallback, 12, 'cursor');
+    document.getElementById('match-status-line').textContent = `Last run: just now · ${openNeeds.length} needs analyzed`;
+  }
+
+  btn.innerHTML = '▶ Run AI Analysis';
+  btn.disabled = false;
+  matchingRunning = false;
+}
+
+function updateMatchPanel(needs, vols, aiText) {
+  const panel = document.getElementById('match-results');
+  const volColors = {'Dr. Ravi Meena':'rgba(239,68,68,.2)','Sunita Kumari':'rgba(245,158,11,.2)','Arjun Joshi':'rgba(59,130,246,.2)','Preethi Menon':'rgba(34,211,160,.1)','Vikram Singh':'rgba(99,102,241,.2)'};
+  const volTC = {'Dr. Ravi Meena':'#f87171','Sunita Kumari':'#fcd34d','Arjun Joshi':'#93c5fd','Preethi Menon':'#22d3a0','Vikram Singh':'#a5b4fc'};
+
+  const volMatchMap = {};
+  vols.forEach(v => {
+    needs.forEach(n => {
+      const skillMatch = v.skills.toLowerCase().includes(n.category.toLowerCase()) || 
+        (n.category === 'Medical' && v.skills.includes('MBBS')) ||
+        (n.category === 'Food' && v.skills.includes('Logistics')) ||
+        (n.category === 'Shelter' && v.skills.includes('Civil')) ||
+        (n.category === 'Water' && v.skills.includes('Water'));
+      if (skillMatch && !volMatchMap[n.id]) {
+        const score = skillMatch ? 85 + Math.floor(Math.random()*15) : 60 + Math.floor(Math.random()*25);
+        volMatchMap[n.id] = {vol: v, score};
+      }
+    });
+  });
+
+  const matchedNeeds = needs.slice(0,3);
+  panel.innerHTML = matchedNeeds.map((n, idx) => {
+    const match = volMatchMap[n.id] || {vol: vols[idx % vols.length], score: 70 + Math.floor(Math.random()*20)};
+    const v = match.vol;
+    const score = match.score;
+    const bg = volColors[v.name] || 'rgba(107,122,148,.2)';
+    const tc = volTC[v.name] || '#94a3b8';
+    const reason = generateReason(n, v);
+    return `<div class="match-row" style="animation-delay:${idx*0.1}s">
+      <div class="match-header"><div class="match-need">${n.desc.substring(0,40)}...</div><div class="match-score">${score}</div></div>
+      <div class="match-bar"><div class="match-bar-fill" style="width:${score}%"></div></div>
+      <div class="match-volunteer">
+        <div class="vol-avatar" style="background:${bg};color:${tc}">${v.initials}</div>
+        <div><div class="vol-name">${v.name}</div><div class="vol-skill">${v.skills.split(',')[0]} · ${v.area}</div></div>
+      </div>
+      <div class="match-reason">"${reason}"</div>
+    </div>`;
+  }).join('');
+
+  const matchPanel = document.getElementById('match-panel');
+  matchPanel.style.borderColor = 'rgba(34,211,160,.4)';
+  setTimeout(()=>matchPanel.style.borderColor='',2000);
+}
+
+function generateReason(need, vol) {
+  const reasons = {
+    'Medical': `${vol.name}'s medical skills make them the ideal responder for this health emergency.`,
+    'Food': `${vol.name}'s logistics background ensures efficient large-scale food distribution.`,
+    'Shelter': `${vol.name}'s engineering expertise critical for emergency shelter assessment.`,
+    'Water': `${vol.name}'s water & sanitation training directly matches this need.`,
+    'Education': `${vol.name}'s background in education and counseling suits this displaced children crisis.`,
+    'Livelihood': `${vol.name}'s agricultural knowledge directly relevant for crop damage assessment.`,
+  };
+  return reasons[need.category] || `Best available match for ${need.category.toLowerCase()} need in ${need.location}.`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// FULL AI MATCHING (MATCHING PAGE)
+// ══════════════════════════════════════════════════════════════
+async function runAIMatchingFull() {
+  const btn1 = document.getElementById('match-page-btn');
+  const btn2 = document.getElementById('match-page-btn2');
+  btn1.innerHTML = '<span class="spinner"></span>Analyzing...';
+  btn1.disabled = true;
+  btn2.disabled = true;
+
+  document.getElementById('match-cursor').style.display = 'inline-block';
+  document.getElementById('match-ai-text').textContent = '';
+
+  const openNeeds = allNeeds.filter(n => n.status !== 'resolved');
+  const availVols = volunteers.filter(v => v.status === 'available');
+
+  const prompt = `You are Saarthi's AI matching engine. Analyze ALL open needs and available volunteers for the Barmer flood relief operation.
+
+OPEN NEEDS (${openNeeds.length} total):
+${openNeeds.map((n,i) => `${i+1}. [U:${n.urgency}] ${n.desc} — ${n.location} | ${n.category} | ${n.people} people`).join('\n')}
+
+AVAILABLE VOLUNTEERS (${availVols.length} total):
+${availVols.map((v,i) => `${i+1}. ${v.name} | Skills: ${v.skills} | Zone: ${v.area} | XP: ${v.xp}`).join('\n')}
+
+Create a complete matching plan:
+1. For EACH need, assign the best volunteer with a score (0-100) and one-line reasoning
+2. Flag any critical needs that cannot be matched
+3. Provide a 3-point operational summary
+
+Be direct and specific. Use actual names. Keep reasoning to one sentence each.`;
+
+  try {
+    const aiText = await callClaude(prompt);
+    await typeText('match-ai-text', aiText, 10, 'match-cursor');
+
+    // Update summary
+    document.getElementById('ms-matches').textContent = Math.min(openNeeds.length, availVols.length);
+    document.getElementById('ms-avg').textContent = '88%';
+    document.getElementById('ms-dispatched').textContent = availVols.length;
+    document.getElementById('ms-unmatched').textContent = Math.max(0, openNeeds.filter(n=>n.urgency>=4).length - availVols.filter(v=>v.skills.includes('Medical')||v.skills.includes('MBBS')).length);
+
+    // Build match results
+    buildFullMatchResults(openNeeds, availVols);
+    toast('Full AI matching complete!', 'success');
+
+  } catch (err) {
+    const fallback = openNeeds.map((n,i) => {
+      const v = availVols[i % availVols.length];
+      return `Need ${i+1}: ${n.desc.substring(0,50)}...\n→ ${v.name} | Score: ${75+Math.floor(Math.random()*20)}/100\nReason: Best skill match for ${n.category} in ${n.location}.`;
+    }).join('\n\n') + '\n\n✦ All needs processed. SMS dispatches initiated.';
+    await typeText('match-ai-text', fallback, 10, 'match-cursor');
+    document.getElementById('ms-matches').textContent = openNeeds.length;
+    document.getElementById('ms-avg').textContent = '82%';
+    document.getElementById('ms-dispatched').textContent = availVols.length;
+    document.getElementById('ms-unmatched').textContent = '0';
+    buildFullMatchResults(openNeeds, availVols);
+  }
+
+  btn1.innerHTML = '⬡ Run Full Matching';
+  btn1.disabled = false;
+  btn2.disabled = false;
+}
+
+function buildFullMatchResults(needs, vols) {
+  const panel = document.getElementById('full-match-results');
+  panel.innerHTML = needs.map((n, i) => {
+    const v = vols[i % vols.length];
+    const score = 70 + Math.floor(Math.random()*28);
+    return `<div class="match-row">
+      <div class="match-header">
+        <div class="match-need">[U:${n.urgency}] ${n.desc.substring(0,55)}...</div>
+        <div class="match-score">${score}</div>
+      </div>
+      <div class="match-bar"><div class="match-bar-fill" style="width:${score}%"></div></div>
+      <div class="match-volunteer">
+        <div class="vol-avatar" style="background:${v.color};color:${v.tc}">${v.initials}</div>
+        <div>
+          <div class="vol-name">${v.name} <span style="font-size:9px;color:var(--muted)">— ${n.location}</span></div>
+          <div class="vol-skill">${v.skills.split(',')[0]}</div>
+        </div>
+        <span class="status-badge status-matched" style="margin-left:auto">Matched</span>
+      </div>
+      <div class="match-reason">"${generateReason(n, v)}"</div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// GENERATE REPORT (DASHBOARD)
+// ══════════════════════════════════════════════════════════════
+async function generateReport() {
+  const btn = document.querySelector('[onclick="generateReport()"]');
+  if (btn) btn.innerHTML = '<span class="spinner"></span>Generating...';
+
+  const prompt = `Generate a concise, compelling donor impact report summary for Saarthi NGO based on these metrics:
+- 184 crisis interventions in Barmer district, Rajasthan (flood response, October 2024)
+- 1,240 people directly helped
+- Average response time reduced from 3.2 hours to 38 minutes (80% improvement)
+- AI volunteer matching accuracy: 94.2%
+- 842 volunteer hours logged
+- 8 of 28 districts covered
+
+Write 3-4 sentences in an impactful, donor-friendly tone. Start with a strong headline number. Mention the AI system's role. Keep it under 100 words.`;
+
+  try {
+    const text = await callClaude(prompt, 'You are a professional NGO impact report writer. Be inspiring, specific, and data-driven. Keep responses concise.');
+    await typeText('gemini-text', text, 14, 'cursor');
+    document.getElementById('ai-summary-text').textContent = text.substring(0, 200) + '...';
+  } catch {
+    await typeText('gemini-text', 'Generating impact report...\n\nIn October 2024, Saarthi delivered humanitarian aid to 1,240 flood-affected residents across Barmer district. AI-powered volunteer matching cut response times by 80% — from 3.2 hours to just 38 minutes. 184 needs resolved. 842 hours of volunteer service logged.\n\n✦ Report ready for download.', 14, 'cursor');
+  }
+  if (btn) btn.innerHTML = '📄 Generate Report';
+  toast('Report generated!', 'success');
+}
+
+// ══════════════════════════════════════════════════════════════
+// FULL IMPACT REPORT (REPORTS PAGE)
+// ══════════════════════════════════════════════════════════════
+async function generateFullReport() {
+  const btn = document.querySelector('[onclick="generateFullReport()"]');
+  btn.innerHTML = '<span class="spinner"></span>Generating...';
+  btn.disabled = true;
+
+  const prompt = `Write a full donor impact report executive summary for Saarthi NGO's October 2024 Barmer flood relief operation.
+
+Data:
+- 184 resolved interventions across Barmer district, Rajasthan
+- 1,240 people directly helped; 8 districts covered
+- AI volunteer matching: 94.2% accuracy, response time 38 min (vs 3.2 hrs before AI)
+- Volunteer leaderboard: Sunita Kumari (34 tasks), Dr. Ravi Meena (28 tasks), Arjun Joshi (21 tasks)
+- Key outcomes: medical emergencies addressed, flood-displaced families sheltered, water access restored
+
+Write a professional 5-6 sentence executive summary suitable for major donors. Emphasize AI innovation and human impact. Be specific with numbers.`;
+
+  try {
+    const text = await callClaude(prompt, 'You are an experienced NGO communications director. Write impact reports that are compelling, specific, and move donors to action.');
+    await typeText('report-ai-text', text, 10);
+  } catch {
+    await typeText('report-ai-text', 'In October 2024, Saarthi\'s AI-powered coordination system delivered measurable impact across Barmer district following catastrophic flooding. Our 18 trained volunteers — guided by real-time AI matching — resolved 184 humanitarian crises in 30 days, directly helping 1,240 flood-displaced residents. The AI engine, matching volunteers to needs based on skill, proximity, and urgency, reduced average response time from 3.2 hours to just 38 minutes — an 80% improvement that saved lives. Medical emergencies received priority dispatch; 23 insulin-dependent survivors received care within 45 minutes of need submission. Saarthi\'s technology-first approach proves that AI and compassion, working together, can transform disaster relief at scale.', 10);
+  }
+  btn.innerHTML = '⬡ Generate AI Report';
+  btn.disabled = false;
+  toast('Full report generated!', 'success');
+}
+
+// ══════════════════════════════════════════════════════════════
+// ANALYTICS AI SUMMARY
+// ══════════════════════════════════════════════════════════════
+async function generateAnalyticsSummary() {
+  const prompt = `Analyze these NGO performance metrics and provide a 3-point operational insight:
+- 184 needs resolved in October (22% more than September)
+- Week 3 peak: 47 needs in one week (flood peak)
+- Response time: 38 minutes average
+- AI match accuracy: 94.2%
+- Volunteer deployment: 18 active, 6 deployed simultaneously
+
+Give 3 specific, actionable insights for the district coordinator. Be direct and practical. Each insight 1-2 sentences.`;
+
+  const el = document.getElementById('analytics-ai-text');
+  el.textContent = 'Analyzing...';
+  try {
+    const text = await callClaude(prompt);
+    await typeText('analytics-ai-text', text, 12);
+  } catch {
+    await typeText('analytics-ai-text', '1. Week 3 surge (47 needs) coincides with flood peak — pre-position medical volunteers in Barmer Central before monsoon season.\n\n2. 94.2% match accuracy is strong, but the 5.8% mismatch rate suggests adding "pediatric care" as a volunteer skill category.\n\n3. 38-min response time is 80% better than baseline — replicate this AI dispatch model in 3 neighboring districts before next flood season.', 12);
+  }
+  toast('Analytics summary ready', 'success');
+}
+
+// ══════════════════════════════════════════════════════════════
+// MAP
+// ══════════════════════════════════════════════════════════════
+let mapLayerMode = 0;
+function toggleMapLayer() {
+  mapLayerMode = (mapLayerMode+1)%3;
+  const wrap = document.getElementById('map-wrap');
+  if (mapLayerMode === 1) { wrap.style.filter = 'hue-rotate(30deg)'; }
+  else if (mapLayerMode === 2) { wrap.style.filter = 'hue-rotate(180deg) brightness(0.8)'; }
+  else { wrap.style.filter = ''; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// MISC
+// ══════════════════════════════════════════════════════════════
+function clearAlerts() {
+  document.getElementById('alert-feed-dash').innerHTML = '<div class="alert-item"><div class="alert-dot info"></div><div class="alert-text" style="color:var(--muted)">No active alerts</div><div class="alert-time">now</div></div>';
+  document.getElementById('full-alert-feed').innerHTML = '<div class="alert-item"><div class="alert-dot info"></div><div class="alert-text" style="color:var(--muted)">No active alerts</div><div class="alert-time">now</div></div>';
+  alertCount = 0;
+  document.getElementById('badge-alerts').textContent = '0';
+  document.getElementById('alert-count-badge').textContent = '0';
+  toast('All alerts cleared', 'info');
+}
+
+function downloadReport() {
+  toast('PDF report download started (demo)', 'success');
+}
+
+// ══════════════════════════════════════════════════════════════
+// AUTO SIMULATE NEW NEED
+// ══════════════════════════════════════════════════════════════
+function simulateIncoming() {
+  needCount++;
+  const descs = ['New family displaced — need food and water','Elderly man requires medication urgently','Roof collapse — 4 people need shelter','Children without drinking water for 24 hrs','Pregnant woman needs transport to hospital'];
+  const cats = ['Food','Medical','Shelter','Water','Medical'];
+  const locs = ['Barmer Central','Pachpadra','Siwana','Dhorimanna','Balotra'];
+  const ri = Math.floor(Math.random()*5);
+
+  document.getElementById('open-needs').textContent = needCount;
+  document.getElementById('map-count').textContent = needCount;
+  document.getElementById('badge-needs').textContent = needCount;
+  document.getElementById('gemini-need-count').textContent = needCount;
+
+  const feed = document.getElementById('need-feed');
+  const div = document.createElement('div');
+  div.className = 'need-item';
+  div.style.background = 'rgba(34,211,160,.04)';
+  div.innerHTML = `<div class="need-urgency urg-4">4</div><div><div class="need-title">${descs[ri]}</div><div class="need-meta">📍 ${locs[ri]} · just now</div><span class="need-tag tag-${cats[ri].toLowerCase()}">${cats[ri]}</span></div>`;
+  feed.insertBefore(div, feed.firstChild);
+  setTimeout(()=>div.style.background='',2000);
+}
+
+// Kept for demo use, but disabled by default so UI stays aligned with backend state.
+// setInterval(simulateIncoming, 30000);
+
+// Initial render
+hydrateFromBackend();
+</script>
+</body>
+</html>
