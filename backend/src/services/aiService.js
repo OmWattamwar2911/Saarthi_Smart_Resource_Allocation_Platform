@@ -41,30 +41,36 @@ export async function generateFromPrompt(prompt, systemPrompt) {
 		}
 	};
 
-	const response = await fetch(
-		`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json"
-			},
-			body: JSON.stringify(body)
+	try {
+		const response = await fetch(
+			`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(body)
+			}
+		);
+
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.warn(`Gemini request failed: ${response.status} ${errorText}`);
+			return buildFallbackText(prompt);
 		}
-	);
 
-	if (!response.ok) {
-		const errorText = await response.text();
-		throw new Error(`Gemini request failed: ${response.status} ${errorText}`);
+		const data = await response.json();
+		const text =
+			data?.candidates?.[0]?.content?.parts
+				?.map((part) => part.text)
+				.filter(Boolean)
+				.join("\n") || "";
+
+		return text || buildFallbackText(prompt);
+	} catch (error) {
+		console.warn("Gemini call error. Using fallback response.", error?.message || error);
+		return buildFallbackText(prompt);
 	}
-
-	const data = await response.json();
-	const text =
-		data?.candidates?.[0]?.content?.parts
-			?.map((part) => part.text)
-			.filter(Boolean)
-			.join("\n") || "";
-
-	return text || buildFallbackText(prompt);
 }
 
 export function heuristicMatch(needs = [], volunteers = []) {

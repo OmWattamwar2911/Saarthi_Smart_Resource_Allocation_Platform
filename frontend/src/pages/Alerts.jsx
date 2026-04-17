@@ -1,4 +1,5 @@
-import { alertFeed } from "../data/mockData";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { alertsApi } from "../services/api";
 
 function levelColor(level) {
 	if (level === "Critical") return "var(--critical)";
@@ -7,6 +8,11 @@ function levelColor(level) {
 }
 
 export default function Alerts() {
+	const queryClient = useQueryClient();
+	const { data: alerts = [], isLoading } = useQuery({ queryKey: ["alerts"], queryFn: () => alertsApi.list() });
+	const escalate = useMutation({ mutationFn: alertsApi.escalate, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["alerts"] }) });
+	const resolve = useMutation({ mutationFn: alertsApi.resolve, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["alerts"] }) });
+
 	return (
 		<section className="page">
 			<section className="panel">
@@ -16,19 +22,21 @@ export default function Alerts() {
 				</header>
 
 				<div className="panel-body need-list">
-					{alertFeed.map((alert) => (
-						<article key={alert.id} className="need-card" style={{ gridTemplateColumns: "1fr auto" }}>
+					{isLoading ? <p className="muted">Loading alerts...</p> : null}
+					{alerts.map((alert) => (
+						<article key={alert.alertId} className="need-card" style={{ gridTemplateColumns: "1fr auto" }}>
 							<div>
 								<p className="need-title">{alert.message}</p>
 								<p className="need-meta">
-									{alert.id} · {alert.time}
+									{alert.alertId} · {alert.zone}
 								</p>
 							</div>
 							<div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-								<span className="tag" style={{ background: "transparent", color: levelColor(alert.level), border: `1px solid ${levelColor(alert.level)}` }}>
-									{alert.level}
+								<span className="tag" style={{ background: "transparent", color: levelColor(alert.severity), border: `1px solid ${levelColor(alert.severity)}` }}>
+									{alert.severity}
 								</span>
-								<button className="danger-btn">Escalate</button>
+								<button className="danger-btn" onClick={() => escalate.mutate(alert.alertId)}>Escalate</button>
+								<button className="soft-btn" onClick={() => resolve.mutate(alert.alertId)}>Resolve</button>
 							</div>
 						</article>
 					))}

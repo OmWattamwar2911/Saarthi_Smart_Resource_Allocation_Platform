@@ -1,6 +1,9 @@
-import { volunteerPool } from "../data/mockData";
+import { useVolunteers, useUpdateAvailability } from "../hooks/useVolunteers";
 
 export default function Volunteers() {
+	const { data: volunteers = [], isLoading } = useVolunteers({});
+	const updateAvailability = useUpdateAvailability();
+
 	return (
 		<section className="page">
 			<section className="panel">
@@ -22,8 +25,9 @@ export default function Volunteers() {
 							</tr>
 						</thead>
 						<tbody>
-							{volunteerPool.map((volunteer) => (
-								<tr key={volunteer.id}>
+							{isLoading ? <tr><td colSpan="6">Loading...</td></tr> : null}
+							{volunteers.map((volunteer) => (
+								<tr key={volunteer.volunteerId}>
 									<td>{volunteer.name}</td>
 									<td>{volunteer.role}</td>
 									<td>{volunteer.zone}</td>
@@ -32,7 +36,16 @@ export default function Volunteers() {
 									</td>
 									<td>{volunteer.rating}</td>
 									<td>
-										<button className="soft-btn">Assign</button>
+										<select
+											className="input"
+											value={volunteer.availability}
+											onChange={(e) => updateAvailability.mutate({ volunteerId: volunteer.volunteerId, status: e.target.value })}
+										>
+											<option>Available</option>
+											<option>On Route</option>
+											<option>Assigned</option>
+											<option>Off Duty</option>
+										</select>
 									</td>
 								</tr>
 							))}

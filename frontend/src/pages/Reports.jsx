@@ -1,6 +1,19 @@
-import { reportEntries } from "../data/mockData";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { reportsApi } from "../services/api";
 
 export default function Reports() {
+	const queryClient = useQueryClient();
+	const { data: reports = [], isLoading } = useQuery({ queryKey: ["reports"], queryFn: reportsApi.list });
+	const generate = useMutation({
+		mutationFn: () => reportsApi.generate({ type: "Impact", owner: "District Command", metrics: { generatedFrom: "frontend" } }),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reports"] })
+	});
+
+	async function openReport(id) {
+		const data = await reportsApi.getPdfData(id);
+		alert(`${data.title}\n\n${data.content?.summary || "No summary"}`);
+	}
+
 	return (
 		<section className="page">
 			<section className="panel">
@@ -10,6 +23,7 @@ export default function Reports() {
 				</header>
 
 				<div className="panel-body">
+					<button className="primary-btn" onClick={() => generate.mutate()} style={{ marginBottom: "0.8rem" }}>Generate Report</button>
 					<table className="table">
 						<thead>
 							<tr>
@@ -21,14 +35,15 @@ export default function Reports() {
 							</tr>
 						</thead>
 						<tbody>
-							{reportEntries.map((entry) => (
-								<tr key={entry.id}>
-									<td>{entry.id}</td>
-									<td>{entry.report}</td>
+							{isLoading ? <tr><td colSpan="5">Loading...</td></tr> : null}
+							{reports.map((entry) => (
+								<tr key={entry.reportId}>
+									<td>{entry.reportId}</td>
+									<td>{entry.title}</td>
 									<td>{entry.owner}</td>
-									<td>{entry.updated}</td>
+									<td>{new Date(entry.lastUpdated).toLocaleString()}</td>
 									<td>
-										<button className="soft-btn">Open PDF</button>
+										<button className="soft-btn" onClick={() => openReport(entry.reportId)}>Open PDF</button>
 									</td>
 								</tr>
 							))}

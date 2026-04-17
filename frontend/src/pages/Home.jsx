@@ -19,7 +19,7 @@ const features = [
     title: "AI Matching Center",
     description:
       "Use confidence-ranked recommendations to match volunteers and teams with high-impact incidents.",
-    to: "/matching",
+    to: "/ai-matching",
     cta: "View Matches"
   },
   {

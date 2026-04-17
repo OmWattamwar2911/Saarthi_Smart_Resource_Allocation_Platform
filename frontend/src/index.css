@@ -62,6 +62,29 @@
     font: inherit;
   }
 
+  .input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.55rem 0.65rem;
+    background: #ffffff;
+    color: var(--text);
+  }
+
+  html[data-theme="dark"] {
+    --bg: #11181f;
+    --surface: #1a2530;
+    --surface-raised: #1f2c39;
+    --surface-soft: #243240;
+    --text: #e6f0f4;
+    --text-muted: #9fb2bc;
+    --text-soft: #7f95a1;
+    --border: #344655;
+    --border-strong: #476074;
+    --sidebar: #0f151c;
+    --sidebar-text: #b5c5d0;
+  }
+
   #root {
     min-height: 100vh;
   }

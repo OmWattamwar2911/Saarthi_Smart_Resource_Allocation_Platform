@@ -14,9 +14,9 @@ export default function NeedCard({ need }) {
       </div>
 
       <div>
-        <p className="need-title">{need.title}</p>
+        <p className="need-title">{need.needId ? `${need.needId} - ` : ""}{need.title}</p>
         <p className="need-meta">
-          {need.category} · {need.location} · {need.time}
+          {need.category} · {need.location} · {need.zone || "-"}
         </p>
       </div>
 

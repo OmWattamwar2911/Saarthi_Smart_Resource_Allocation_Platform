@@ -7,18 +7,28 @@ export default function SubmitModal({ onClose, onSubmit }) {
     category: "Medical",
     urgency: 4
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.title || !form.location) return;
 
-    onSubmit({
-      ...form,
-      id: Date.now(),
-      status: "Open",
-      time: "just now"
-    });
+    setError("");
+    setIsSubmitting(true);
 
-    onClose();
+    try {
+      await onSubmit({
+        ...form,
+        id: Date.now(),
+        status: "Open",
+        time: "just now"
+      });
+      onClose();
+    } catch {
+      setError("Could not submit need. Please check your session and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -61,9 +71,13 @@ export default function SubmitModal({ onClose, onSubmit }) {
           </select>
         </div>
 
+        {error ? <p className="need-meta" style={{ color: "var(--critical)" }}>{error}</p> : null}
+
         <div className="actions">
-          <button className="soft-btn" onClick={onClose}>Cancel</button>
-          <button className="primary-btn" onClick={handleSubmit}>Submit Need</button>
+          <button className="soft-btn" onClick={onClose} disabled={isSubmitting}>Cancel</button>
+          <button className="primary-btn" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit Need"}
+          </button>
         </div>
       </div>
     </div>

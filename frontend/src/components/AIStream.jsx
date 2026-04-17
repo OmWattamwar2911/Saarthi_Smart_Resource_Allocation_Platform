@@ -1,4 +1,10 @@
-export default function AIStream({ lines }) {
+export default function AIStream({
+	lines,
+	onRunAnalysis,
+	onGenerateReport,
+	isRunning = false,
+	isGeneratingReport = false
+}) {
 	return (
 		<section className="panel">
 			<header className="panel-head">
@@ -14,8 +20,20 @@ export default function AIStream({ lines }) {
 				</div>
 
 				<div className="actions">
-					<button className="soft-btn">Run AI Analysis</button>
-					<button className="primary-btn">Generate Report</button>
+										<button
+											className="soft-btn"
+											onClick={onRunAnalysis}
+											disabled={isRunning}
+										>
+											{isRunning ? "Running..." : "Run AI Analysis"}
+										</button>
+										<button
+											className="primary-btn"
+											onClick={onGenerateReport}
+											disabled={isGeneratingReport}
+										>
+											{isGeneratingReport ? "Generating..." : "Generate Report"}
+										</button>
 				</div>
 			</div>
 		</section>

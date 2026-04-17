@@ -1,18 +1,24 @@
 import { useLocation } from "react-router-dom";
+import { useApp } from "../context/AppContext";
 
 const labels = {
   "/": "Saarthi Home",
   "/dashboard": "Operations Dashboard",
   "/needs": "Needs Queue",
-  "/matching": "AI Matching Center",
+  "/ai-matching": "AI Matching Center",
   "/volunteers": "Volunteer Coordination",
   "/analytics": "Operational Analytics",
   "/alerts": "Alerts & Escalations",
-  "/reports": "Reports & Compliance"
+  "/reports": "Reports & Compliance",
+  "/notifications": "Live Notifications",
+  "/search": "Global Search",
+  "/history": "Activity History",
+  "/settings": "System Settings"
 };
 
 export default function Topbar({ uiMode, onModeChange }) {
   const location = useLocation();
+  const { notifications, globalSearch, setGlobalSearch } = useApp();
   const title = labels[location.pathname] || "Operations Dashboard";
 
   return (
@@ -36,6 +42,14 @@ export default function Topbar({ uiMode, onModeChange }) {
             <option value="map">Map-first Mission Control</option>
           </select>
         </label>
+        <input
+          className="input"
+          style={{ width: 220 }}
+          placeholder="Quick search"
+          value={globalSearch}
+          onChange={(e) => setGlobalSearch(e.target.value)}
+        />
+        <span className="chip">Notifications: {notifications.length}</span>
         <span className="chip">
           <span className="status-dot" />
           Live monitoring enabled
