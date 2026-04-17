@@ -54,7 +54,7 @@ const features = [
 
 export default function Home() {
   return (
-    <section className="page page-signature">
+    <section className="page page-signature home-layout">
       <section className="hero-home panel">
         <div>
           <p className="hero-kicker">Saarthi Command Platform</p>

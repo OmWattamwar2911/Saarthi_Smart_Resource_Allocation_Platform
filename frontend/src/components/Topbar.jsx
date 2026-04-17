@@ -11,20 +11,37 @@ const labels = {
   "/reports": "Reports & Compliance"
 };
 
-export default function Topbar() {
+export default function Topbar({ uiMode, onModeChange }) {
   const location = useLocation();
   const title = labels[location.pathname] || "Operations Dashboard";
 
   return (
     <header className="topbar">
-      <div>
+      <div className="topbar-title">
+        <p className="topbar-eyebrow">District Resilience Network</p>
         <h1>{title}</h1>
         <p>Barmer District Control Room</p>
       </div>
-      <span className="chip">
-        <span className="status-dot" />
-        Live monitoring enabled
-      </span>
+      <div className="topbar-right">
+        <label className="mode-select-wrap" htmlFor="ui-mode">
+          <span>Mode</span>
+          <select
+            id="ui-mode"
+            className="mode-select"
+            value={uiMode}
+            onChange={(e) => onModeChange(e.target.value)}
+          >
+            <option value="brutalist">Brutalist Editorial</option>
+            <option value="glass">Glass Command-Center</option>
+            <option value="map">Map-first Mission Control</option>
+          </select>
+        </label>
+        <span className="chip">
+          <span className="status-dot" />
+          Live monitoring enabled
+        </span>
+        <span className="chip chip-soft">Avg dispatch 38 min</span>
+      </div>
     </header>
   );
 }

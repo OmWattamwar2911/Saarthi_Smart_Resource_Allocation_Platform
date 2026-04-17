@@ -25,7 +25,7 @@ export default function Dashboard() {
   };
 
   return (
-    <section className="page page-signature">
+    <section className="page page-signature dashboard-layout">
       <div className="stat-grid">
         <StatCard title="Open Needs" value={needs.length} color="var(--critical)" />
         <StatCard title="Active Volunteers" value="18" color="var(--low)" />
