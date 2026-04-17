@@ -1,11 +1,10 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
 import morgan from "morgan";
 import cron from "node-cron";
 
-import { connectDB, getDbStatus, isDbConnected } from "./config/db.js";
+import { closeDB, connectDB, getDbStatus } from "./config/db.js";
 import { initSocket } from "./config/socket.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { setIo, emitEvent, logActivity } from "./services/notificationService.js";
@@ -41,7 +40,7 @@ function isAllowedOrigin(origin) {
   return allowedOrigins.has(origin);
 }
 
-await connectDB();
+const dbConnected = await connectDB();
 
 app.use(
   cors({
@@ -82,8 +81,14 @@ app.get("/api/v1/health", (req, res) => {
 app.use(errorHandler);
 
 const server = app.listen(port, async () => {
-  const seedResult = await seedData();
   console.log(`Server running on ${port}`);
+
+  if (!dbConnected) {
+    console.log("Skipping seed and database cron jobs because MongoDB is not connected.");
+    return;
+  }
+
+  const seedResult = await seedData();
   if (seedResult.seeded) {
     console.log("Seed data inserted.");
   }
@@ -92,68 +97,68 @@ const server = app.listen(port, async () => {
 const io = initSocket(server);
 setIo(io);
 
-cron.schedule("*/1 * * * *", async () => {
-  try {
-    const urgentOpenNeeds = await Need.aggregate([
-      {
-        $match: {
-          status: "Open",
-          urgency: { $gte: 4 }
-        }
-      },
-      { $group: { _id: "$zone", count: { $sum: 1 } } },
-      { $match: { count: { $gt: 3 } } }
-    ]);
+if (dbConnected) {
+  cron.schedule("*/1 * * * *", async () => {
+    try {
+      const urgentOpenNeeds = await Need.aggregate([
+        {
+          $match: {
+            status: "Open",
+            urgency: { $gte: 4 }
+          }
+        },
+        { $group: { _id: "$zone", count: { $sum: 1 } } },
+        { $match: { count: { $gt: 3 } } }
+      ]);
 
-    for (const zoneEntry of urgentOpenNeeds) {
-      const zone = zoneEntry._id;
-      const count = zoneEntry.count;
-      const existing = await Alert.findOne({
-        zone,
-        status: "Active",
-        severity: "High",
-        message: { $regex: `Zone ${zone} has`, $options: "i" }
-      });
+      for (const zoneEntry of urgentOpenNeeds) {
+        const zone = zoneEntry._id;
+        const count = zoneEntry.count;
+        const existing = await Alert.findOne({
+          zone,
+          status: "Active",
+          severity: "High",
+          message: { $regex: `Zone ${zone} has`, $options: "i" }
+        });
 
-      if (existing) continue;
+        if (existing) continue;
 
-      const alert = await Alert.create({
-        alertId: await generateNextId(Alert, "alertId", "AL"),
-        message: `Zone ${zone} has ${count} critical open needs`,
-        severity: "High",
-        zone,
-        status: "Active"
-      });
+        const alert = await Alert.create({
+          alertId: await generateNextId(Alert, "alertId", "AL"),
+          message: `Zone ${zone} has ${count} critical open needs`,
+          severity: "High",
+          zone,
+          status: "Active"
+        });
 
-      await logActivity({
-        action: "Auto Zone Pressure Alert",
-        details: `${alert.alertId} created for ${zone}`,
-        entityType: "Alert",
-        entityId: alert.alertId,
-        performedBy: "System"
-      });
+        await logActivity({
+          action: "Auto Zone Pressure Alert",
+          details: `${alert.alertId} created for ${zone}`,
+          entityType: "Alert",
+          entityId: alert.alertId,
+          performedBy: "System"
+        });
 
-      emitEvent("alert:new", {
-        alert,
-        notification: {
-          id: `${Date.now()}-zone-pressure`,
-          type: "error",
-          message: `Zone pressure alert: ${zone}`,
-          timestamp: new Date().toISOString()
-        }
-      });
+        emitEvent("alert:new", {
+          alert,
+          notification: {
+            id: `${Date.now()}-zone-pressure`,
+            type: "error",
+            message: `Zone pressure alert: ${zone}`,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Zone pressure cron failed", error.message);
     }
-  } catch (error) {
-    console.error("Zone pressure cron failed", error.message);
-  }
-});
+  });
+}
 
 const shutdown = (signal) => {
   console.log(`Received ${signal}. Closing server...`);
   server.close(async () => {
-    if (isDbConnected()) {
-      await mongoose.connection.close();
-    }
+    await closeDB();
     process.exit(0);
   });
 };

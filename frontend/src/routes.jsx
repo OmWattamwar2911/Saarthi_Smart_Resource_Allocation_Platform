@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Needs from "./pages/Needs";
-import Matching from "./pages/Matching";
+import AIMatching from "./pages/AIMatching";
 import Volunteers from "./pages/Volunteers";
 import Analytics from "./pages/Analytics";
 import Alerts from "./pages/Alerts";
@@ -22,7 +22,7 @@ export default function RoutesConfig() {
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/needs" element={<ProtectedRoute><Needs /></ProtectedRoute>} />
-        <Route path="/ai-matching" element={<ProtectedRoute><Matching /></ProtectedRoute>} />
+        <Route path="/ai-matching" element={<ProtectedRoute><AIMatching /></ProtectedRoute>} />
         <Route path="/volunteers" element={<ProtectedRoute><Volunteers /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
         <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />

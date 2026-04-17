@@ -200,6 +200,21 @@
     backdrop-filter: blur(8px);
   }
 
+  .main-stage.dark-mode {
+    border-color: #344655;
+    background: rgba(22, 34, 45, 0.78);
+  }
+
+  @keyframes pulse {
+    0% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0 50%;
+    }
+  }
+
   .topbar {
     min-height: 84px;
     padding: 1rem 1.4rem;
