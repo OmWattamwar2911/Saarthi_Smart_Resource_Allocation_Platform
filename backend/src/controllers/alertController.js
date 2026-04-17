@@ -2,13 +2,36 @@ import Alert from "../models/Alert.js";
 import { generateNextId } from "../utils/generateId.js";
 import { createNotificationPayload, emitEvent, logActivity } from "../services/notificationService.js";
 
+function normalizeQueryValue(value) {
+  const text = String(value || "").trim();
+  if (!text || text.toLowerCase() === "all") {
+    return "";
+  }
+  return text;
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function getAlerts(req, res, next) {
   try {
     const filter = {};
-    if (req.query.severity) filter.severity = req.query.severity;
-    if (req.query.status) filter.status = req.query.status;
+    const severityValue = normalizeQueryValue(req.query.severity);
+    const statusValue = normalizeQueryValue(req.query.status);
+    const zoneValue = normalizeQueryValue(req.query.zone);
+    const searchValue = normalizeQueryValue(req.query.search);
+    const limit = Number(req.query.limit) || 0;
 
-    const data = await Alert.find(filter).sort({ createdAt: -1 });
+    if (severityValue) filter.severity = severityValue;
+    if (statusValue) filter.status = statusValue;
+    if (zoneValue) filter.zone = zoneValue;
+    if (searchValue) {
+      const regex = new RegExp(escapeRegex(searchValue), "i");
+      filter.$or = [{ message: regex }, { alertId: regex }, { zone: regex }];
+    }
+
+    const data = await Alert.find(filter).sort({ createdAt: -1 }).limit(limit);
     return res.json(data);
   } catch (error) {
     return next(error);

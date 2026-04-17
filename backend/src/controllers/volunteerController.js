@@ -13,6 +13,14 @@ function normalizeAvailability(value) {
 	return AVAILABILITY_ALIASES[value] || value;
 }
 
+function normalizeQueryValue(value) {
+	const text = String(value || "").trim();
+	if (!text || text.toLowerCase() === "all") {
+		return "";
+	}
+	return text;
+}
+
 function getInitials(name = "") {
 	return name
 		.split(" ")
@@ -27,10 +35,24 @@ export async function getVolunteers(req, res, next) {
 	try {
 		const filter = { isActive: true };
 		const { availability, zone, role, search, sort = "name", limit = 0 } = req.query;
-		if (availability) filter.availability = availability;
-		if (zone) filter.zone = zone;
-		if (role) filter.role = role;
-		if (search) filter.name = { $regex: search, $options: "i" };
+		const availabilityValue = normalizeQueryValue(availability);
+		const zoneValue = normalizeQueryValue(zone);
+		const roleValue = normalizeQueryValue(role);
+		const searchValue = normalizeQueryValue(search);
+
+		if (availabilityValue) filter.availability = availabilityValue;
+		if (zoneValue) filter.zone = zoneValue;
+		if (roleValue) filter.role = roleValue;
+		if (searchValue) {
+			const regex = new RegExp(searchValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+			filter.$or = [
+				{ name: regex },
+				{ volunteerId: regex },
+				{ role: regex },
+				{ zone: regex },
+				{ skills: regex }
+			];
+		}
 
 		const sortMap = { name: { name: 1 }, rating: { rating: -1 }, xp: { xp: -1 }, zone: { zone: 1 } };
 		const data = await Volunteer.find(filter).sort(sortMap[sort] || sortMap.name).limit(Number(limit) || 0);

@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 
 const labels = {
@@ -18,6 +18,7 @@ const labels = {
 
 export default function Topbar({ uiMode, onModeChange }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { notifications, globalSearch, setGlobalSearch } = useApp();
   const title = labels[location.pathname] || "Operations Dashboard";
 
@@ -48,6 +49,11 @@ export default function Topbar({ uiMode, onModeChange }) {
           placeholder="Quick search"
           value={globalSearch}
           onChange={(e) => setGlobalSearch(e.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              navigate("/search");
+            }
+          }}
         />
         <span className="chip">Notifications: {notifications.length}</span>
         <span className="chip">

@@ -12,9 +12,40 @@ const ICONS = {
 	Donor: "💰"
 };
 
+function normalizeQueryValue(value) {
+	const text = String(value || "").trim();
+	if (!text || text.toLowerCase() === "all") {
+		return "";
+	}
+	return text;
+}
+
+function escapeRegex(value) {
+	return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export async function getReports(req, res, next) {
 	try {
-		const reports = await Report.find().sort({ generatedAt: -1 });
+		const filter = {};
+		const searchValue = normalizeQueryValue(req.query.search);
+		const typeValue = normalizeQueryValue(req.query.type);
+		const ownerValue = normalizeQueryValue(req.query.owner);
+		const limit = Number(req.query.limit) || 0;
+
+		if (typeValue) {
+			filter.type = typeValue;
+		}
+
+		if (ownerValue) {
+			filter.owner = ownerValue;
+		}
+
+		if (searchValue) {
+			const regex = new RegExp(escapeRegex(searchValue), "i");
+			filter.$or = [{ title: regex }, { reportId: regex }, { owner: regex }, { type: regex }];
+		}
+
+		const reports = await Report.find(filter).sort({ generatedAt: -1 }).limit(limit);
 		return res.json(reports);
 	} catch (error) {
 		return next(error);
