@@ -1,38 +1,26 @@
 export default function NeedCard({ need }) {
   const colors = {
-    5: "red",
-    4: "orange",
-    3: "blue",
-    2: "green"
+    5: "var(--critical)",
+    4: "var(--high)",
+    3: "var(--medium)",
+    2: "var(--low)",
+    1: "var(--low)"
   };
 
   return (
-    <div style={{
-      padding: "12px",
-      borderBottom: "1px solid rgba(255,255,255,0.07)"
-    }}>
-      <div style={{ display: "flex", gap: "10px" }}>
-        
-        <div style={{
-          background: colors[need.urgency],
-          width: "30px",
-          height: "30px",
-          borderRadius: "8px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center"
-        }}>
-          {need.urgency}
-        </div>
-
-        <div>
-          <div>{need.title}</div>
-          <div style={{ fontSize: "12px", color: "#6b7a94" }}>
-            📍 {need.location} · {need.time}
-          </div>
-        </div>
-
+    <article className="need-card">
+      <div className="need-priority" style={{ background: colors[need.urgency] }}>
+        {need.urgency}
       </div>
-    </div>
+
+      <div>
+        <p className="need-title">{need.title}</p>
+        <p className="need-meta">
+          {need.category} · {need.location} · {need.time}
+        </p>
+      </div>
+
+      <span className="tag">{need.status || "Open"}</span>
+    </article>
   );
 }

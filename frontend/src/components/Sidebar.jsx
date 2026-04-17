@@ -1,28 +1,44 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+
+const navItems = [
+  { to: "/", label: "Home" },
+  { to: "/dashboard", label: "Dashboard" },
+  { to: "/needs", label: "Needs" },
+  { to: "/matching", label: "AI Matching" },
+  { to: "/volunteers", label: "Volunteers" },
+  { to: "/analytics", label: "Analytics" },
+  { to: "/alerts", label: "Alerts" },
+  { to: "/reports", label: "Reports" }
+];
 
 export default function Sidebar() {
   return (
-    <div style={{
-      width: "220px",
-      background: "#0d1420",
-      borderRight: "1px solid rgba(255,255,255,0.07)",
-      padding: "20px"
-    }}>
-      <h2 style={{ color: "#22d3a0" }}>⬡ Saarthi</h2>
+    <aside className="sidebar">
+      <div className="brand">
+        <h2 className="brand-title">Saarthi</h2>
+        <p className="brand-sub">Smart Resource Allocation Platform</p>
+      </div>
 
-      <nav style={{ marginTop: "20px" }}>
-        <Link to="/" style={linkStyle}>Dashboard</Link>
-        <Link to="/" style={linkStyle}>Needs</Link>
-        <Link to="/" style={linkStyle}>AI Matching</Link>
-        <Link to="/" style={linkStyle}>Volunteers</Link>
+      <nav className="nav-list" aria-label="Primary">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === "/"}
+            className={({ isActive }) =>
+              `nav-item${isActive ? " active" : ""}`
+            }
+          >
+            <span>{item.label}</span>
+            <span aria-hidden="true">›</span>
+          </NavLink>
+        ))}
       </nav>
-    </div>
+
+      <div className="brand" style={{ marginTop: "auto" }}>
+        <p className="brand-sub">Coverage</p>
+        <p style={{ margin: "0.25rem 0 0", fontWeight: 600 }}>7 Active Zones</p>
+      </div>
+    </aside>
   );
 }
-
-const linkStyle = {
-  display: "block",
-  margin: "10px 0",
-  color: "#6b7a94",
-  textDecoration: "none"
-};

@@ -4,6 +4,7 @@ export default function SubmitModal({ onClose, onSubmit }) {
   const [form, setForm] = useState({
     title: "",
     location: "",
+    category: "Medical",
     urgency: 4
   });
 
@@ -13,6 +14,7 @@ export default function SubmitModal({ onClose, onSubmit }) {
     onSubmit({
       ...form,
       id: Date.now(),
+      status: "Open",
       time: "just now"
     });
 
@@ -20,52 +22,50 @@ export default function SubmitModal({ onClose, onSubmit }) {
   };
 
   return (
-    <div style={overlay}>
-      <div style={modal}>
-
+    <div className="modal-overlay" role="dialog" aria-modal="true">
+      <div className="modal">
         <h3>Submit Need</h3>
+        <p className="section-subtitle">Create a verified incident for dispatch matching.</p>
 
-        <input
-          placeholder="Description"
-          onChange={(e) => setForm({ ...form, title: e.target.value })}
-        />
+        <div className="form-grid">
+          <input
+            placeholder="Need description"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
 
-        <input
-          placeholder="Location"
-          onChange={(e) => setForm({ ...form, location: e.target.value })}
-        />
+          <input
+            placeholder="Location"
+            value={form.location}
+            onChange={(e) => setForm({ ...form, location: e.target.value })}
+          />
 
-        <select
-          onChange={(e) => setForm({ ...form, urgency: Number(e.target.value) })}
-        >
-          <option value="5">Critical</option>
-          <option value="4">High</option>
-          <option value="3">Medium</option>
-        </select>
+          <select
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+          >
+            <option value="Medical">Medical</option>
+            <option value="Food">Food</option>
+            <option value="Shelter">Shelter</option>
+            <option value="Water">Water</option>
+          </select>
 
-        <button onClick={handleSubmit}>Submit</button>
-        <button onClick={onClose}>Cancel</button>
+          <select
+            value={form.urgency}
+            onChange={(e) => setForm({ ...form, urgency: Number(e.target.value) })}
+          >
+            <option value="5">Critical</option>
+            <option value="4">High</option>
+            <option value="3">Moderate</option>
+            <option value="2">Low</option>
+          </select>
+        </div>
 
+        <div className="actions">
+          <button className="soft-btn" onClick={onClose}>Cancel</button>
+          <button className="primary-btn" onClick={handleSubmit}>Submit Need</button>
+        </div>
       </div>
     </div>
   );
 }
-
-const overlay = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.7)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center"
-};
-
-const modal = {
-  background: "#0d1420",
-  padding: "20px",
-  borderRadius: "10px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "10px",
-  width: "300px"
-};

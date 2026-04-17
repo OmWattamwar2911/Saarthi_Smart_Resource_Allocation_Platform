@@ -1,13 +1,30 @@
+import { useLocation } from "react-router-dom";
+
+const labels = {
+  "/": "Saarthi Home",
+  "/dashboard": "Operations Dashboard",
+  "/needs": "Needs Queue",
+  "/matching": "AI Matching Center",
+  "/volunteers": "Volunteer Coordination",
+  "/analytics": "Operational Analytics",
+  "/alerts": "Alerts & Escalations",
+  "/reports": "Reports & Compliance"
+};
+
 export default function Topbar() {
+  const location = useLocation();
+  const title = labels[location.pathname] || "Operations Dashboard";
+
   return (
-    <div style={{
-      height: "60px",
-      borderBottom: "1px solid rgba(255,255,255,0.07)",
-      display: "flex",
-      alignItems: "center",
-      padding: "0 20px"
-    }}>
-      <h3>Barmer District — Dashboard</h3>
-    </div>
+    <header className="topbar">
+      <div>
+        <h1>{title}</h1>
+        <p>Barmer District Control Room</p>
+      </div>
+      <span className="chip">
+        <span className="status-dot" />
+        Live monitoring enabled
+      </span>
+    </header>
   );
 }
