@@ -62,15 +62,21 @@ export const reportsApi = {
 export const analyticsApi = {
 	summary: () => api.get("/analytics/summary").then((res) => res.data),
 	zones: () => api.get("/analytics/zones").then((res) => res.data),
-	categories: () => api.get("/analytics/categories").then((res) => res.data),
-	timeline: () => api.get("/analytics/timeline").then((res) => res.data)
+	timeline: () => api.get("/analytics/timeline").then((res) => res.data),
+	volunteerUtilization: () => api.get("/analytics/volunteer-utilization").then((res) => res.data),
+	heatmap: () => api.get("/analytics/heatmap").then((res) => res.data),
+	insights: () => api.post("/analytics/insights").then((res) => res.data)
 };
 
 export const settingsApi = {
 	get: () => api.get("/settings").then((res) => res.data),
-	update: (payload) => api.patch("/settings", payload).then((res) => res.data),
-	updateZones: (zones) => api.patch("/settings/zones", { zones }).then((res) => res.data),
-	reset: () => api.post("/settings/reset").then((res) => res.data)
+	save: (payload) => api.post("/settings", payload).then((res) => res.data),
+	update: (payload) => api.post("/settings", payload).then((res) => res.data),
+	reset: () => api.post("/settings/reset").then((res) => res.data),
+	status: () => api.get("/settings/status").then((res) => res.data),
+	forceSync: () => api.post("/settings/force-sync").then((res) => res.data),
+	resetMatches: () => api.post("/settings/reset-matches").then((res) => res.data),
+	clearAssignments: () => api.post("/settings/clear-assignments").then((res) => res.data)
 };
 
 export const activityApi = {
