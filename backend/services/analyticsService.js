@@ -1,7 +1,7 @@
 import admin from "firebase-admin";
 import { needsStore, volunteersStore } from "../src/utils/store.js";
 
-const ZONES = ["Barmer East", "Siwana", "Balotra", "Gudamalani", "Dhrimanna", "Pachpadra"];
+const ZONES = ["Barmer East", "Siwana", "Balotra", "Gudamalani", "Dhorimanna", "Pachpadra"];
 const CATEGORIES = ["Medical", "Shelter", "Food", "Education", "Logistics"];
 const CATEGORY_KEY_MAP = {
   medical: "Medical",
@@ -58,6 +58,11 @@ function normalizeZone(value) {
   const zone = String(value || "").trim();
   if (!zone) {
     return "Barmer East";
+  }
+
+  const normalized = zone.toLowerCase();
+  if (normalized === "dhrimanna" || normalized === "dhorimanna") {
+    return "Dhorimanna";
   }
 
   return zone;

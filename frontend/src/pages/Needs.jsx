@@ -40,7 +40,7 @@ export default function Needs() {
 							<option>Siwana</option>
 							<option>Balotra</option>
 							<option>Gudamalani</option>
-							<option>Dhrimanna</option>
+							<option>Dhorimanna</option>
 							<option>Pachpadra</option>
 						</select>
 						<select className="input" value={draft.category} onChange={(e) => setDraft((prev) => ({ ...prev, category: e.target.value }))}>

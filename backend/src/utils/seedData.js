@@ -109,7 +109,7 @@ export async function seedData() {
     ["Sunita Kumari", "Logistics", "Barmer East", "Available", 4.8, 2840, 34],
     ["Vikram Joshi", "Driver", "Gudamalani", "Available", 4.4, 1200, 13],
     ["Neha Chouhan", "Coordinator", "Pachpadra", "Available", 4.5, 1480, 16],
-    ["Tarun Singh", "Rescue Lead", "Dhrimanna", "Off Duty", 4.2, 980, 9],
+    ["Tarun Singh", "Rescue Lead", "Dhorimanna", "Off Duty", 4.2, 980, 9],
     ["Prakash Mali", "Civil Engineering", "Siwana", "Available", 4.1, 1360, 15],
     ["Hemlata", "Nursing", "Barmer Central", "Available", 4.3, 1110, 11],
     ["Aslam Khan", "Driver", "Barmer East", "On Route", 4.0, 840, 8],
@@ -118,7 +118,7 @@ export async function seedData() {
     ["Rajveer", "Rescue Lead", "Balotra", "Available", 4.5, 1540, 17],
     ["Nandini", "Nursing", "Siwana", "Off Duty", 4.4, 1320, 14],
     ["Bhavesh", "Doctor", "Barmer Central", "Available", 4.8, 2360, 26],
-    ["Sajid", "Logistics", "Dhrimanna", "Available", 4.1, 940, 9]
+    ["Sajid", "Logistics", "Dhorimanna", "Available", 4.1, 940, 9]
   ];
 
   for (const [name, role, zone, availability, rating, xp, tasksCompleted] of volunteerSeed) {

@@ -35,7 +35,7 @@ export const ZONES = [
   "Siwana",
   "Balotra",
   "Gudamalani",
-  "Dhrimanna",
+  "Dhorimanna",
   "Pachpadra"
 ];
 
@@ -43,9 +43,9 @@ export const ADJACENT_ZONE_MAP = {
   "Barmer Central": ["Barmer East", "Balotra", "Gudamalani"],
   "Barmer East": ["Barmer Central", "Pachpadra", "Siwana"],
   Siwana: ["Barmer East", "Balotra", "Pachpadra"],
-  Balotra: ["Barmer Central", "Siwana", "Dhrimanna"],
-  Gudamalani: ["Barmer Central", "Dhrimanna"],
-  Dhrimanna: ["Gudamalani", "Balotra"],
+  Balotra: ["Barmer Central", "Siwana", "Dhorimanna"],
+  Gudamalani: ["Barmer Central", "Dhorimanna"],
+  Dhorimanna: ["Gudamalani", "Balotra"],
   Pachpadra: ["Barmer East", "Siwana"]
 };
 

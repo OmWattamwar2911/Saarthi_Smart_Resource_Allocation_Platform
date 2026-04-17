@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
 	ArcElement,
 	BarElement,
@@ -15,6 +15,7 @@ import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import StatCard from "../components/StatCard";
 import { analyticsApi } from "../services/api";
+import { getSocket } from "../services/socket";
 import HeatmapTable from "../components/HeatmapTable";
 import InsightsPanel from "../components/InsightsPanel";
 
@@ -56,7 +57,7 @@ const DEFAULT_INSIGHTS = [
 	},
 	{
 		severity: "success",
-		title: "High performance in Dhrimanna",
+		title: "High performance in Dhorimanna",
 		description:
 			"Zone cleared all open needs within SLA. Volunteer team available for redeployment."
 	},
@@ -176,6 +177,7 @@ export default function Analytics() {
 	const [heatmap, setHeatmap] = useState({ zones: [], categories: [], matrix: {} });
 	const [insights, setInsights] = useState(DEFAULT_INSIGHTS);
 	const [lastUpdated, setLastUpdated] = useState(null);
+	const liveRefreshTimerRef = useRef(null);
 
 	const elapsedSeconds = useElapsedSeconds(lastUpdated);
 
@@ -219,6 +221,37 @@ export default function Analytics() {
 
 	useEffect(() => {
 		fetchAll();
+	}, []);
+
+	useEffect(() => {
+		const socket = getSocket();
+		const scheduleRefresh = () => {
+			if (liveRefreshTimerRef.current) {
+				clearTimeout(liveRefreshTimerRef.current);
+			}
+
+			liveRefreshTimerRef.current = setTimeout(() => {
+				fetchAll(true);
+			}, 350);
+		};
+
+		const liveEvents = [
+			"analytics:update",
+			"need:created",
+			"need:updated",
+			"volunteer:updated",
+			"match:generated",
+			"alert:new"
+		];
+
+		liveEvents.forEach((eventName) => socket.on(eventName, scheduleRefresh));
+
+		return () => {
+			liveEvents.forEach((eventName) => socket.off(eventName, scheduleRefresh));
+			if (liveRefreshTimerRef.current) {
+				clearTimeout(liveRefreshTimerRef.current);
+			}
+		};
 	}, []);
 
 	async function regenerateInsights() {
@@ -421,7 +454,9 @@ export default function Analytics() {
 				>
 					{refreshing ? "Refreshing..." : "Refresh Data"}
 				</button>
-				<span style={{ fontSize: 12, color: "#6b7280" }}>Last updated: {lastUpdated ? `${elapsedSeconds} seconds ago` : "Never"}</span>
+				<span style={{ fontSize: 12, color: "#6b7280" }}>
+					Live stream active | Last updated: {lastUpdated ? `${elapsedSeconds} seconds ago` : "Never"}
+				</span>
 			</div>
 
 			<div className="stat-grid">

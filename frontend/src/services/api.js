@@ -56,7 +56,8 @@ export const matchesApi = {
 export const reportsApi = {
 	list: () => api.get("/reports").then((res) => res.data),
 	generate: (payload) => api.post("/reports/generate", payload).then((res) => res.data),
-	getPdfData: (id) => api.get(`/reports/${id}/pdf`).then((res) => res.data)
+	getPdfData: (id) => api.get(`/reports/${id}/pdf`).then((res) => res.data),
+	openPdfBlob: (id) => api.get(`/reports/${id}/pdf?format=pdf`, { responseType: "blob" }).then((res) => res.data)
 };
 
 export const analyticsApi = {

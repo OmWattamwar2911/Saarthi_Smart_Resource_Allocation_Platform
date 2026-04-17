@@ -10,8 +10,17 @@ export default function Reports() {
 	});
 
 	async function openReport(id) {
-		const data = await reportsApi.getPdfData(id);
-		alert(`${data.title}\n\n${data.content?.summary || "No summary"}`);
+		try {
+			const blob = await reportsApi.openPdfBlob(id);
+			const objectUrl = URL.createObjectURL(blob);
+			window.open(objectUrl, "_blank", "noopener,noreferrer");
+
+			setTimeout(() => {
+				URL.revokeObjectURL(objectUrl);
+			}, 60000);
+		} catch {
+			alert("Unable to open report PDF right now. Please try again.");
+		}
 	}
 
 	return (

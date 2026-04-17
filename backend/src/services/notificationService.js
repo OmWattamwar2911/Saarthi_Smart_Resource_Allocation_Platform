@@ -1,6 +1,13 @@
 import ActivityLog from "../models/ActivityLog.js";
 
 let ioRef = null;
+const ANALYTICS_TRIGGER_EVENTS = new Set([
+  "need:created",
+  "need:updated",
+  "volunteer:updated",
+  "match:generated",
+  "alert:new"
+]);
 
 export function setIo(io) {
   ioRef = io;
@@ -20,6 +27,13 @@ export async function logActivity({ action, details, entityType, entityId, perfo
 export function emitEvent(event, payload) {
   if (ioRef) {
     ioRef.emit(event, payload);
+
+    if (ANALYTICS_TRIGGER_EVENTS.has(event)) {
+      ioRef.emit("analytics:update", {
+        sourceEvent: event,
+        timestamp: new Date().toISOString()
+      });
+    }
   }
 }
 

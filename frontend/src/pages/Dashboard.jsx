@@ -23,6 +23,14 @@ function formatTimeAgo(timestamp) {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
+function openBlobInNewTab(blob) {
+  const objectUrl = URL.createObjectURL(blob);
+  window.open(objectUrl, "_blank", "noopener,noreferrer");
+  setTimeout(() => {
+    URL.revokeObjectURL(objectUrl);
+  }, 60000);
+}
+
 export default function Dashboard() {
   const queryClient = useQueryClient();
   const { data: needs = [] } = useNeeds({ sort: "urgency", order: "desc", limit: 20 });
@@ -147,10 +155,10 @@ export default function Dashboard() {
           peopleHelped
         }
       });
-      const data = await reportsApi.getPdfData(report.reportId);
-      alert(`${data.title}\n\n${data.content?.summary || "No summary available"}`);
+      const blob = await reportsApi.openPdfBlob(report.reportId);
+      openBlobInNewTab(blob);
     } catch {
-      alert("Unable to generate report right now. Please try again.");
+      alert("Unable to generate impact report right now. Please check login/session and try again.");
     }
   }
 
@@ -166,27 +174,17 @@ export default function Dashboard() {
           peopleHelped
         }
       });
-      const data = await reportsApi.getPdfData(report.reportId);
-      const content = [
-        `${data.title}`,
-        `Report ID: ${data.reportId}`,
-        `Owner: ${data.owner}`,
-        `Generated: ${new Date(data.generatedAt).toLocaleString()}`,
-        "",
-        data.content?.summary || "No summary available"
-      ].join("\n");
-
-      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const blob = await reportsApi.openPdfBlob(report.reportId);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${data.reportId}.txt`;
+      link.download = `${report.reportId}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch {
-      alert("Unable to download donor report right now. Please try again.");
+      alert("Unable to download donor report right now. Please check login/session and try again.");
     }
   }
 
