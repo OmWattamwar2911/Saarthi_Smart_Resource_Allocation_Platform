@@ -1,0 +1,53 @@
+# Declarative Cloud Run manifest for Saarthi frontend.
+# Build-time VITE_* values must be injected in CI/CD before image build.
+# Deploy with:
+#   gcloud run services replace frontend/cloudrun.yaml --region=asia-south1 --project=<PROJECT_ID>
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: saarthi-frontend
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "10"
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+        - image: IMAGE_PLACEHOLDER
+          ports:
+            - name: http1
+              containerPort: 80
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          env:
+            # Runtime metadata only; Vite variables are baked during image build.
+            - name: NODE_ENV
+              value: production
+
+          startupProbe:
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 12
+            httpGet:
+              path: /
+              port: 80
+          livenessProbe:
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 80
+
+  traffic:
+    - latestRevision: true
+      percent: 100

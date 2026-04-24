@@ -1,0 +1,157 @@
+# Declarative Cloud Run service manifest for Saarthi backend.
+# Deploy with:
+#   gcloud run services replace backend/cloudrun.yaml --region=asia-south1 --project=<PROJECT_ID>
+#
+# Notes:
+# - Replace IMAGE_PLACEHOLDER during deployment, or patch image first.
+# - Secret values are never hardcoded; every sensitive value references Secret Manager.
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: saarthi-backend
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "10"
+        run.googleapis.com/cpu-throttling: "true"
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+        - image: IMAGE_PLACEHOLDER
+          ports:
+            - name: http1
+              containerPort: 5000
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          env:
+            # Non-sensitive runtime settings.
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "5000"
+
+            # Sensitive and configurable settings from Secret Manager.
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: MONGO_URI
+                  key: latest
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: JWT_SECRET
+                  key: latest
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: GEMINI_API_KEY
+                  key: latest
+            - name: GCP_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: GCP_PROJECT_ID
+                  key: latest
+            - name: GCP_LOCATION
+              valueFrom:
+                secretKeyRef:
+                  name: GCP_LOCATION
+                  key: latest
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: GOOGLE_CLIENT_ID
+                  key: latest
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: GOOGLE_CLIENT_SECRET
+                  key: latest
+            - name: GOOGLE_TRANSLATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: GOOGLE_TRANSLATE_KEY
+                  key: latest
+            - name: GOOGLE_CLOUD_SPEECH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: GOOGLE_CLOUD_SPEECH_KEY
+                  key: latest
+            - name: GCS_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: GCS_BUCKET_NAME
+                  key: latest
+            - name: FIREBASE_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: FIREBASE_PROJECT_ID
+                  key: latest
+            - name: FIREBASE_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: FIREBASE_PRIVATE_KEY
+                  key: latest
+            - name: FIREBASE_CLIENT_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: FIREBASE_CLIENT_EMAIL
+                  key: latest
+            - name: BIGQUERY_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: BIGQUERY_PROJECT_ID
+                  key: latest
+            - name: BIGQUERY_DATASET
+              valueFrom:
+                secretKeyRef:
+                  name: BIGQUERY_DATASET
+                  key: latest
+            - name: GOOGLE_CALENDAR_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: GOOGLE_CALENDAR_CLIENT_ID
+                  key: latest
+            - name: GOOGLE_CALENDAR_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: GOOGLE_CALENDAR_CLIENT_SECRET
+                  key: latest
+            - name: GOOGLE_CALENDAR_REFRESH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: GOOGLE_CALENDAR_REFRESH_TOKEN
+                  key: latest
+            - name: FRONTEND_URL
+              valueFrom:
+                secretKeyRef:
+                  name: FRONTEND_URL
+                  key: latest
+
+          # Health probes pinned to required endpoint.
+          startupProbe:
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 12
+            httpGet:
+              path: /api/v1/health
+              port: 5000
+          livenessProbe:
+            timeoutSeconds: 5
+            periodSeconds: 30
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/health
+              port: 5000
+
+  traffic:
+    - latestRevision: true
+      percent: 100

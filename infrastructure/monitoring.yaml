@@ -1,0 +1,132 @@
+# Monitoring and alerting blueprint for Saarthi on Google Cloud.
+# Designed for Cloud Monitoring + Cloud Run + uptime checks.
+
+project: your-gcp-project-id
+region: asia-south1
+
+uptimeChecks:
+  - displayName: saarthi-backend-health
+    monitoredResource:
+      type: uptime_url
+      labels:
+        host: saarthi-backend-REPLACE-URL.a.run.app
+    httpCheck:
+      useSsl: true
+      path: /api/v1/health
+      port: 443
+      requestMethod: GET
+    period: 60s
+    timeout: 10s
+    selectedRegions:
+      - ASIA_PACIFIC
+
+alertPolicies:
+  - displayName: Backend Error Rate > 5%
+    combiner: OR
+    conditions:
+      - displayName: Cloud Run 5xx ratio threshold
+        conditionThreshold:
+          filter: |
+            metric.type="run.googleapis.com/request_count"
+            resource.type="cloud_run_revision"
+            resource.label."service_name"="saarthi-backend"
+          aggregations:
+            - alignmentPeriod: 300s
+              perSeriesAligner: ALIGN_RATE
+          comparison: COMPARISON_GT
+          thresholdValue: 0.05
+          duration: 300s
+    notificationChannels:
+      - projects/your-gcp-project-id/notificationChannels/REPLACE_EMAIL_CHANNEL
+
+  - displayName: Backend p95 Latency > 3s
+    combiner: OR
+    conditions:
+      - displayName: Cloud Run request latency p95
+        conditionThreshold:
+          filter: |
+            metric.type="run.googleapis.com/request_latencies"
+            resource.type="cloud_run_revision"
+            resource.label."service_name"="saarthi-backend"
+          aggregations:
+            - alignmentPeriod: 300s
+              perSeriesAligner: ALIGN_PERCENTILE_95
+          comparison: COMPARISON_GT
+          thresholdValue: 3
+          duration: 300s
+    notificationChannels:
+      - projects/your-gcp-project-id/notificationChannels/REPLACE_EMAIL_CHANNEL
+
+  - displayName: Cloud Run Max Instance Saturation
+    combiner: OR
+    conditions:
+      - displayName: Instance count reaches max (10)
+        conditionThreshold:
+          filter: |
+            metric.type="run.googleapis.com/container/instance_count"
+            resource.type="cloud_run_revision"
+            resource.label."service_name"="saarthi-backend"
+          aggregations:
+            - alignmentPeriod: 60s
+              perSeriesAligner: ALIGN_MAX
+          comparison: COMPARISON_GTE
+          thresholdValue: 10
+          duration: 120s
+    notificationChannels:
+      - projects/your-gcp-project-id/notificationChannels/REPLACE_EMAIL_CHANNEL
+
+  - displayName: MongoDB Connectivity Failure
+    combiner: OR
+    conditions:
+      - displayName: Health endpoint reports db disconnected
+        conditionThreshold:
+          filter: |
+            metric.type="logging.googleapis.com/user/saarthi_health_db_connected"
+            resource.type="cloud_run_revision"
+          comparison: COMPARISON_LT
+          thresholdValue: 1
+          duration: 120s
+    notificationChannels:
+      - projects/your-gcp-project-id/notificationChannels/REPLACE_EMAIL_CHANNEL
+
+  - displayName: Backend Uptime Check Fails For 2m
+    combiner: OR
+    conditions:
+      - displayName: Uptime check status false for two minutes
+        conditionThreshold:
+          filter: |
+            metric.type="monitoring.googleapis.com/uptime_check/check_passed"
+            resource.type="uptime_url"
+          comparison: COMPARISON_LT
+          thresholdValue: 1
+          duration: 120s
+    notificationChannels:
+      - projects/your-gcp-project-id/notificationChannels/REPLACE_EMAIL_CHANNEL
+
+dashboards:
+  - displayName: Saarthi Operations Dashboard
+    widgets:
+      - title: Request Count Per Minute
+        xyChart:
+          dataSets:
+            - timeSeriesQuery:
+                timeSeriesFilter:
+                  filter: metric.type="run.googleapis.com/request_count" resource.type="cloud_run_revision"
+      - title: Error Rate
+        xyChart:
+          dataSets:
+            - timeSeriesQuery:
+                timeSeriesFilter:
+                  filter: metric.type="run.googleapis.com/request_count" resource.type="cloud_run_revision"
+      - title: Response Time p50/p95/p99
+        xyChart:
+          dataSets:
+            - timeSeriesQuery:
+                timeSeriesFilter:
+                  filter: metric.type="run.googleapis.com/request_latencies" resource.type="cloud_run_revision"
+      - title: Active Cloud Run Instances
+        xyChart:
+          dataSets:
+            - timeSeriesQuery:
+                timeSeriesFilter:
+                  filter: metric.type="run.googleapis.com/container/instance_count" resource.type="cloud_run_revision"

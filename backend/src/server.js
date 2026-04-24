@@ -4,10 +4,11 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import cron from "node-cron";
 
-import { closeDB, connectDB, getDbStatus } from "./config/db.js";
+import { closeDB, connectDB } from "./config/db.js";
 import { initSocket } from "./config/socket.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { setIo, emitEvent, logActivity } from "./services/notificationService.js";
+import { monitoringMiddleware, healthHandler } from "../middleware/monitoring.js";
 import { seedData } from "./utils/seedData.js";
 import Need from "./models/Need.js";
 import Alert from "./models/Alert.js";
@@ -56,6 +57,7 @@ app.use(
 );
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
+app.use(monitoringMiddleware);
 
 app.use("/api/v1/needs", needRoutes);
 app.use("/api/v1/volunteers", volunteerRoutes);
@@ -68,15 +70,7 @@ app.use("/api/v1/settings", settingsRoutes);
 app.use("/api/v1/activity", activityRoutes);
 app.use("/api/v1/ai", aiRoutes);
 
-app.get("/api/v1/health", (req, res) => {
-  res.json({
-    ok: true,
-    service: "saarthi-backend",
-    db: getDbStatus(),
-    uptimeSec: Math.floor(process.uptime()),
-    time: new Date().toISOString()
-  });
-});
+app.get("/api/v1/health", healthHandler);
 
 app.use(errorHandler);
 

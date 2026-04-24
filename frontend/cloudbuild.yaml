@@ -1,11 +1,62 @@
+# Cloud Build pipeline for Saarthi frontend.
+# Builds the Vite app inside Docker, pushes to Artifact Registry, and deploys to Cloud Run.
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _REGION: asia-south1
+  _REPOSITORY: saarthi
+  _SERVICE_NAME: saarthi-frontend
+  _VITE_API_URL: https://saarthi-backend-REPLACE-URL.a.run.app/api/v1
+  _VITE_SOCKET_URL: https://saarthi-backend-REPLACE-URL.a.run.app
+  _VITE_GOOGLE_MAPS_API_KEY: REPLACE_ME
+
 steps:
-- name: gcr.io/cloud-builders/docker
-  args:
-  - build
-  - --build-arg
-  - VITE_API_URL=${_VITE_API_URL}
-  - -t
-  - ${_IMAGE}
-  - .
+  # 1) Build frontend Docker image with Vite build-time variables.
+  - id: build-frontend-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}
+      - --build-arg
+      - VITE_API_URL=${_VITE_API_URL}
+      - --build-arg
+      - VITE_SOCKET_URL=${_VITE_SOCKET_URL}
+      - --build-arg
+      - VITE_GOOGLE_MAPS_API_KEY=${_VITE_GOOGLE_MAPS_API_KEY}
+      - -f
+      - frontend/Dockerfile
+      - frontend
+
+  # 2) Push image to Artifact Registry.
+  - id: push-frontend-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}
+
+  # 3) Deploy frontend service to Cloud Run.
+  - id: deploy-frontend-cloud-run
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --project=${PROJECT_ID}
+      - --region=${_REGION}
+      - --platform=managed
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}
+      - --allow-unauthenticated
+      - --port=80
+      - --memory=512Mi
+      - --cpu=1
+      - --concurrency=80
+      - --timeout=300
+      - --min-instances=1
+      - --max-instances=10
+
 images:
-- ${_IMAGE}
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}

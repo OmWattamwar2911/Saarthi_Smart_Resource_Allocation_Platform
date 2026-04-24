@@ -1,0 +1,45 @@
+# Cloud CDN configuration blueprint for Saarthi frontend behind global HTTPS LB.
+
+project: your-gcp-project-id
+region: asia-south1
+
+cdn:
+  enabled: true
+  backendService: saarthi-frontend-backend-service
+  cacheMode: CACHE_ALL_STATIC
+
+cachePolicies:
+  staticAssets:
+    pathMatch: /assets/*
+    cacheTtlSeconds: 31536000
+    clientTtlSeconds: 31536000
+    defaultTtlSeconds: 31536000
+    maxTtlSeconds: 31536000
+    negativeCaching: false
+
+  html:
+    pathMatch: /index.html
+    cacheTtlSeconds: 300
+    clientTtlSeconds: 0
+    defaultTtlSeconds: 300
+    maxTtlSeconds: 300
+    negativeCaching: false
+
+headers:
+  # These should align with frontend/nginx.conf headers.
+  /assets/*:
+    Cache-Control: public, max-age=31536000, immutable
+  /index.html:
+    Cache-Control: no-cache, no-store, must-revalidate
+  /api/*:
+    Cache-Control: no-cache, no-store, must-revalidate
+
+invalidation:
+  strategy: ci-cd
+  command: |
+    gcloud compute url-maps invalidate-cdn-cache saarthi-url-map --path "/*" --project your-gcp-project-id
+
+notes:
+  - Keep API and websocket routes uncached and routed to backend Cloud Run service.
+  - Enable compression on frontend responses via nginx and LB defaults.
+  - Tag frontend deploys with git commit SHA for traceable cache purges.

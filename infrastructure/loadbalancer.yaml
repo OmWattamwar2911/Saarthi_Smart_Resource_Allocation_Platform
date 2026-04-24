@@ -1,0 +1,97 @@
+# Global external HTTP(S) Load Balancer design for Saarthi on Cloud Run.
+# This file documents the infrastructure blueprint and Terraform-equivalent intent.
+# Use with gcloud/Terraform execution pipelines as Config Connector equivalents.
+
+project:
+  id: your-gcp-project-id
+  region: asia-south1
+
+loadBalancer:
+  name: saarthi-global-https-lb
+  type: EXTERNAL_MANAGED
+  scheme: INTERNET_FACING
+  ipVersion: IPV4
+
+frontend:
+  globalAddress:
+    name: saarthi-global-ip
+  targetHttpsProxy:
+    name: saarthi-https-proxy
+  sslCertificates:
+    - name: saarthi-managed-cert
+      type: MANAGED
+      domains:
+        - saarthi.example.com
+        - www.saarthi.example.com
+  forwardingRules:
+    - name: saarthi-https-forwarding-rule
+      portRange: "443"
+      ipProtocol: TCP
+      targetProxy: saarthi-https-proxy
+    - name: saarthi-http-forwarding-rule
+      portRange: "80"
+      ipProtocol: TCP
+      targetHttpProxy: saarthi-http-redirect-proxy
+
+routing:
+  urlMap:
+    name: saarthi-url-map
+    defaultService: saarthi-frontend-backend-service
+    hostRules:
+      - hosts:
+          - saarthi.example.com
+          - www.saarthi.example.com
+        pathMatcher: saarthi-path-matcher
+    pathMatchers:
+      - name: saarthi-path-matcher
+        defaultService: saarthi-frontend-backend-service
+        pathRules:
+          - paths:
+              - /api/*
+            service: saarthi-backend-backend-service
+          - paths:
+              - /socket.io/*
+            service: saarthi-backend-backend-service
+          - paths:
+              - /*
+            service: saarthi-frontend-backend-service
+
+backends:
+  - name: saarthi-backend-backend-service
+    protocol: HTTP
+    timeoutSec: 300
+    healthCheck: saarthi-backend-health-check
+    cloudRunService:
+      serviceName: saarthi-backend
+      region: asia-south1
+
+  - name: saarthi-frontend-backend-service
+    protocol: HTTP
+    timeoutSec: 30
+    healthCheck: saarthi-frontend-health-check
+    cloudRunService:
+      serviceName: saarthi-frontend
+      region: asia-south1
+
+healthChecks:
+  - name: saarthi-backend-health-check
+    type: HTTP
+    requestPath: /api/v1/health
+    port: 80
+    checkIntervalSec: 60
+    timeoutSec: 10
+  - name: saarthi-frontend-health-check
+    type: HTTP
+    requestPath: /
+    port: 80
+    checkIntervalSec: 60
+    timeoutSec: 10
+
+security:
+  cloudArmorPolicy: optional-saarthi-waf-policy
+  redirectHttpToHttps: true
+
+notes:
+  - Use serverless NEGs for both Cloud Run services.
+  - Bind SSL cert to target HTTPS proxy.
+  - Restrict Cloud Run ingress to internal-and-cloud-load-balancing after LB validation.

@@ -1,0 +1,96 @@
+name: Deploy Backend To Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - backend/**
+      - .github/workflows/deploy-backend.yml
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    env:
+      REGION: asia-south1
+      REPOSITORY: saarthi
+      SERVICE_NAME: saarthi-backend
+
+    steps:
+      # Checkout repository code.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Authenticate to Google Cloud using Workload Identity Federation.
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+
+      # Install gcloud CLI.
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      # Configure Docker auth for Artifact Registry.
+      - name: Configure Docker Auth
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      # Build and push backend image tagged with commit SHA.
+      - name: Build Backend Image
+        run: |
+          IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          docker build -f backend/Dockerfile -t "$IMAGE_URI" backend
+          docker push "$IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      # Deploy to Cloud Run with Secret Manager bindings.
+      - name: Deploy Backend Service
+        run: |
+          gcloud run deploy "${{ env.SERVICE_NAME }}" \
+            --project="${{ secrets.GCP_PROJECT_ID }}" \
+            --region="${{ env.REGION }}" \
+            --platform=managed \
+            --image="$IMAGE_URI" \
+            --allow-unauthenticated \
+            --port=5000 \
+            --cpu=1 \
+            --memory=1Gi \
+            --concurrency=80 \
+            --timeout=300 \
+            --min-instances=1 \
+            --max-instances=10 \
+            --set-env-vars="NODE_ENV=production" \
+            --set-secrets="MONGO_URI=MONGO_URI:latest,JWT_SECRET=JWT_SECRET:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,GCP_PROJECT_ID=GCP_PROJECT_ID:latest,GCP_LOCATION=GCP_LOCATION:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,GOOGLE_TRANSLATE_KEY=GOOGLE_TRANSLATE_KEY:latest,GOOGLE_CLOUD_SPEECH_KEY=GOOGLE_CLOUD_SPEECH_KEY:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest,FIREBASE_PROJECT_ID=FIREBASE_PROJECT_ID:latest,FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest,FIREBASE_CLIENT_EMAIL=FIREBASE_CLIENT_EMAIL:latest,BIGQUERY_PROJECT_ID=BIGQUERY_PROJECT_ID:latest,BIGQUERY_DATASET=BIGQUERY_DATASET:latest,GOOGLE_CALENDAR_CLIENT_ID=GOOGLE_CALENDAR_CLIENT_ID:latest,GOOGLE_CALENDAR_CLIENT_SECRET=GOOGLE_CALENDAR_CLIENT_SECRET:latest,GOOGLE_CALENDAR_REFRESH_TOKEN=GOOGLE_CALENDAR_REFRESH_TOKEN:latest,FRONTEND_URL=FRONTEND_URL:latest"
+
+      # Run post-deploy backend health check.
+      - name: Health Check
+        run: |
+          BACKEND_URL=$(gcloud run services describe "${{ env.SERVICE_NAME }}" --region="${{ env.REGION }}" --format="value(status.url)")
+          curl --fail "$BACKEND_URL/api/v1/health"
+
+      # Notify in GitHub job summary.
+      - name: Notify Success
+        if: success()
+        run: |
+          {
+            echo "## Backend Deployment Succeeded"
+            echo "- Service: ${{ env.SERVICE_NAME }}"
+            echo "- Region: ${{ env.REGION }}"
+            echo "- Image: $IMAGE_URI"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify Failure
+        if: failure()
+        run: |
+          {
+            echo "## Backend Deployment Failed"
+            echo "Check logs for details."
+          } >> "$GITHUB_STEP_SUMMARY"

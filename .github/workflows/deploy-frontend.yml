@@ -1,0 +1,92 @@
+name: Deploy Frontend To Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - frontend/**
+      - .github/workflows/deploy-frontend.yml
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    env:
+      REGION: asia-south1
+      REPOSITORY: saarthi
+      SERVICE_NAME: saarthi-frontend
+
+    steps:
+      # Checkout repository.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Authenticate to GCP via Workload Identity Federation.
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+
+      # Setup gcloud CLI.
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      # Configure Docker auth.
+      - name: Configure Docker Auth
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      # Build frontend image with Vite env injection, tag with commit SHA, and push.
+      - name: Build And Push Frontend Image
+        run: |
+          IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          docker build \
+            -f frontend/Dockerfile \
+            --build-arg VITE_API_URL="${{ secrets.VITE_API_URL }}" \
+            --build-arg VITE_SOCKET_URL="${{ secrets.VITE_SOCKET_URL }}" \
+            --build-arg VITE_GOOGLE_MAPS_API_KEY="${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}" \
+            -t "$IMAGE_URI" \
+            frontend
+          docker push "$IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      # Deploy frontend to Cloud Run in asia-south1.
+      - name: Deploy Frontend Service
+        run: |
+          gcloud run deploy "${{ env.SERVICE_NAME }}" \
+            --project="${{ secrets.GCP_PROJECT_ID }}" \
+            --region="${{ env.REGION }}" \
+            --platform=managed \
+            --image="$IMAGE_URI" \
+            --allow-unauthenticated \
+            --port=80 \
+            --memory=512Mi \
+            --cpu=1 \
+            --concurrency=80 \
+            --timeout=300 \
+            --min-instances=1 \
+            --max-instances=10
+
+      # Optional CDN invalidation if external HTTPS Load Balancer + Cloud CDN is configured.
+      - name: Purge CDN Cache (Optional)
+        if: ${{ secrets.GCP_CDN_URL_MAP != '' }}
+        run: |
+          gcloud compute url-maps invalidate-cdn-cache "${{ secrets.GCP_CDN_URL_MAP }}" \
+            --project="${{ secrets.GCP_PROJECT_ID }}" \
+            --path "/*"
+
+      - name: Publish Summary
+        run: |
+          {
+            echo "## Frontend Deployment Completed"
+            echo "- Service: ${{ env.SERVICE_NAME }}"
+            echo "- Region: ${{ env.REGION }}"
+            echo "- Image: $IMAGE_URI"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,69 @@
+# Cloud Build pipeline for Saarthi backend.
+# Builds a Docker image, pushes to Artifact Registry, then deploys to Cloud Run.
+#
+# Trigger recommendation:
+# - GitHub trigger on main branch with included files under backend/**
+#
+# Required substitutions:
+# - _REGION: GCP region (default asia-south1)
+# - _REPOSITORY: Artifact Registry repo name (default saarthi)
+# - _SERVICE_NAME: Cloud Run service name (default saarthi-backend)
+#
+# Required IAM for Cloud Build service account:
+# - roles/artifactregistry.writer
+# - roles/run.admin
+# - roles/iam.serviceAccountUser
+# - roles/secretmanager.secretAccessor (for deployment-time secret bindings)
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _REGION: asia-south1
+  _REPOSITORY: saarthi
+  _SERVICE_NAME: saarthi-backend
+
+steps:
+  # 1) Build backend container image tagged with commit SHA.
+  - id: build-backend-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}
+      - -f
+      - backend/Dockerfile
+      - backend
+
+  # 2) Push image to Artifact Registry.
+  - id: push-backend-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}
+
+  # 3) Deploy backend to Cloud Run with runtime sizing and Secret Manager integration.
+  - id: deploy-backend-cloud-run
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --project=${PROJECT_ID}
+      - --region=${_REGION}
+      - --platform=managed
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}
+      - --allow-unauthenticated
+      - --port=5000
+      - --cpu=1
+      - --memory=1Gi
+      - --concurrency=80
+      - --timeout=300
+      - --min-instances=1
+      - --max-instances=10
+      - --set-env-vars=NODE_ENV=production
+      - --set-secrets=MONGO_URI=MONGO_URI:latest,JWT_SECRET=JWT_SECRET:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest,GCP_PROJECT_ID=GCP_PROJECT_ID:latest,GCP_LOCATION=GCP_LOCATION:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,GOOGLE_TRANSLATE_KEY=GOOGLE_TRANSLATE_KEY:latest,GOOGLE_CLOUD_SPEECH_KEY=GOOGLE_CLOUD_SPEECH_KEY:latest,GCS_BUCKET_NAME=GCS_BUCKET_NAME:latest,FIREBASE_PROJECT_ID=FIREBASE_PROJECT_ID:latest,FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest,FIREBASE_CLIENT_EMAIL=FIREBASE_CLIENT_EMAIL:latest,BIGQUERY_PROJECT_ID=BIGQUERY_PROJECT_ID:latest,BIGQUERY_DATASET=BIGQUERY_DATASET:latest,GOOGLE_CALENDAR_CLIENT_ID=GOOGLE_CALENDAR_CLIENT_ID:latest,GOOGLE_CALENDAR_CLIENT_SECRET=GOOGLE_CALENDAR_CLIENT_SECRET:latest,GOOGLE_CALENDAR_REFRESH_TOKEN=GOOGLE_CALENDAR_REFRESH_TOKEN:latest,FRONTEND_URL=FRONTEND_URL:latest
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE_NAME}:${SHORT_SHA}

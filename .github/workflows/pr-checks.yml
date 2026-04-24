@@ -1,0 +1,72 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout PR code.
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Setup Node.js for frontend and backend checks.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      # Install frontend deps and run lint.
+      - name: Frontend Lint
+        run: |
+          npm ci --prefix frontend
+          npm run lint --prefix frontend
+
+      # Install backend deps and run tests when defined.
+      - name: Backend Tests
+        run: |
+          npm ci --prefix backend
+          npm test --prefix backend --if-present
+
+      # Build backend image to verify Docker build integrity.
+      - name: Build Backend Docker Image
+        run: docker build -f backend/Dockerfile -t saarthi-backend-pr:${{ github.sha }} backend
+
+      # Build frontend image to verify Vite + nginx container build integrity.
+      - name: Build Frontend Docker Image
+        run: |
+          docker build \
+            -f frontend/Dockerfile \
+            --build-arg VITE_API_URL="http://localhost:5000/api/v1" \
+            --build-arg VITE_SOCKET_URL="http://localhost:5000" \
+            --build-arg VITE_GOOGLE_MAPS_API_KEY="dummy-key" \
+            -t saarthi-frontend-pr:${{ github.sha }} \
+            frontend
+
+      # Comment status summary on PR.
+      - name: Comment Build Status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              "PR checks passed successfully.",
+              "- Frontend ESLint completed",
+              "- Backend tests completed",
+              "- Backend Docker build succeeded",
+              "- Frontend Docker build succeeded"
+            ].join("\n");
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
