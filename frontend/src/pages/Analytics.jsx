@@ -18,6 +18,7 @@ import { analyticsApi } from "../services/api";
 import { getSocket } from "../services/socket";
 import HeatmapTable from "../components/HeatmapTable";
 import InsightsPanel from "../components/InsightsPanel";
+import NLQueryBar from "../components/NLQueryBar";
 
 ChartJS.register(
 	CategoryScale,
@@ -445,6 +446,7 @@ export default function Analytics() {
 
 	return (
 		<section className="page">
+			<NLQueryBar />
 			<div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, marginBottom: 12 }}>
 				<button
 					className="soft-btn"

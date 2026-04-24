@@ -5,9 +5,9 @@ const ZONE_POSITIONS = {
   "barmer east": { top: "30%", left: "62%" },
   siwana: { top: "35%", left: "68%" },
   balotra: { top: "16%", left: "18%" },
-  gudamalani: { top: "58%", left: "24%" },
-  "dhorimanna": { top: "58%", left: "24%" },
-  "dhrimanna": { top: "58%", left: "24%" },
+  gudamalani: { top: "60%", left: "16%" },
+  "dhorimanna": { top: "58%", left: "28%" },
+  "dhrimanna": { top: "58%", left: "28%" },
   pachpadra: { top: "66%", left: "58%" }
 };
 
@@ -321,10 +321,10 @@ export default function Heatmap({ needs = [], zones = [] }) {
                 }
               }}
             >
-              <span className="muted">{zone.name}</span>
-              <strong>{zone.score}</strong>
-              <span className="muted">Open {zone.openNeeds} · Resolved {zone.resolvedNeeds}</span>
-              <span className="muted">{zone.trend}</span>
+              <span className="heat-cell-name" title={zone.name}>{zone.name}</span>
+              <strong className="heat-cell-score">{zone.score}</strong>
+              <span className="heat-cell-meta">Open {zone.openNeeds} · Resolved {zone.resolvedNeeds}</span>
+              <span className="heat-cell-trend">{zone.trend}</span>
             </article>
           ))}
         </div>

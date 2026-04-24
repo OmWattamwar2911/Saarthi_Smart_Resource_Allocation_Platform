@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { matchesApi } from "../services/api";
+import DamageAssessment from "../components/DamageAssessment";
 
 function parseEtaMinutes(eta) {
   const match = String(eta || "").match(/\d+/);
@@ -229,6 +230,8 @@ export default function AIMatching() {
           </table>
         </div>
       </section>
+
+      <DamageAssessment />
     </section>
   );
 }

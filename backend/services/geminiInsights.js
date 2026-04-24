@@ -1,8 +1,4 @@
-import { VertexAI } from "@google-cloud/vertexai";
-
-const project = process.env.GOOGLE_CLOUD_PROJECT || "smart-resource-alloc";
-const location = process.env.VERTEX_AI_LOCATION || "us-central1";
-const modelName = process.env.GEMINI_MODEL || "gemini-1.5-pro";
+import { generateJsonWithFallback } from "./vertexAIService.js";
 
 function parseJsonArray(rawText) {
   const cleaned = String(rawText || "")
@@ -78,17 +74,7 @@ function fallbackInsights(analyticsJson) {
 }
 
 export async function generateGeminiInsights(analyticsJson) {
-  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  const appCredentials = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-
-  if (!serviceAccount && !appCredentials) {
-    return fallbackInsights(analyticsJson);
-  }
-
   try {
-    const vertex = new VertexAI({ project, location });
-    const model = vertex.getGenerativeModel({ model: modelName });
-
     const prompt = `You are an analytics AI for a disaster relief coordination platform 
 in Barmer District, Rajasthan, India.
 
@@ -105,18 +91,17 @@ Return JSON array ONLY:
   "description": "2 sentences max, specific and actionable"
 }]`;
 
-    const response = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.2,
-        responseMimeType: "application/json"
-      }
+    const parsed = await generateJsonWithFallback({
+      prompt,
+      systemPrompt: "Return JSON array only, no markdown.",
+      temperature: 0.2,
+      maxOutputTokens: 900
     });
 
-    const text =
-      response?.response?.candidates?.[0]?.content?.parts?.map((part) => part?.text || "").join("\n") || "";
+    if (!Array.isArray(parsed)) {
+      throw new Error("Gemini insights response is not an array");
+    }
 
-    const parsed = parseJsonArray(text);
     return sanitizeInsights(parsed);
   } catch (error) {
     return fallbackInsights(analyticsJson);

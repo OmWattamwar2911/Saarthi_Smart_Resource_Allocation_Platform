@@ -1,3 +1,5 @@
+import { generateTextWithFallback } from "./vertexAIService.js";
+
 function buildFallbackText(prompt) {
 	const lower = String(prompt || "").toLowerCase();
 
@@ -17,58 +19,17 @@ function buildFallbackText(prompt) {
 }
 
 export async function generateFromPrompt(prompt, systemPrompt) {
-	const apiKey = process.env.GEMINI_API_KEY;
-	if (!apiKey || apiKey === "your_api_key") {
-		return buildFallbackText(prompt);
-	}
-
-	const body = {
-		systemInstruction: systemPrompt
-			? {
-					parts: [{ text: systemPrompt }]
-				}
-			: undefined,
-		contents: [
-			{
-				role: "user",
-				parts: [{ text: String(prompt || "") }]
-			}
-		],
-		generationConfig: {
-			temperature: 0.4,
-			topP: 0.9,
-			maxOutputTokens: 900
-		}
-	};
-
 	try {
-		const response = await fetch(
-			`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify(body)
-			}
-		);
-
-		if (!response.ok) {
-			const errorText = await response.text();
-			console.warn(`Gemini request failed: ${response.status} ${errorText}`);
-			return buildFallbackText(prompt);
-		}
-
-		const data = await response.json();
-		const text =
-			data?.candidates?.[0]?.content?.parts
-				?.map((part) => part.text)
-				.filter(Boolean)
-				.join("\n") || "";
+		const text = await generateTextWithFallback({
+			prompt,
+			systemPrompt,
+			temperature: 0.4,
+			maxOutputTokens: 900
+		});
 
 		return text || buildFallbackText(prompt);
 	} catch (error) {
-		console.warn("Gemini call error. Using fallback response.", error?.message || error);
+		console.warn("AI generation failed. Using deterministic fallback.", error?.message || error);
 		return buildFallbackText(prompt);
 	}
 }

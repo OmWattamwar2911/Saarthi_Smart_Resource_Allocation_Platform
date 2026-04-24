@@ -118,10 +118,19 @@ export default function Alerts() {
 								<p className="need-meta">
 									{alert.alertId} · {alert.zone} · {new Date(alert.createdAt).toLocaleString()}
 								</p>
+								<p className="need-meta" style={{ marginTop: "0.25rem" }}>
+									AI Priority: {Number(alert.priorityScore || 0)} / 100
+								</p>
+								<p style={{ margin: "0.25rem 0 0", color: "#334155", fontSize: 13 }}>
+									{alert.recommendedAction || "Monitor and coordinate with local response unit."}
+								</p>
 							</div>
 							<div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
 								<span className="tag" style={{ background: "transparent", color: levelColor(alert.severity), border: `1px solid ${levelColor(alert.severity)}` }}>
 									{alert.severity}
+								</span>
+								<span className="tag" style={{ background: "#eef6ff", color: "#1d4ed8", border: "1px solid #bfdbfe" }}>
+									AI {Number(alert.priorityScore || 0)}
 								</span>
 								<button
 									className="danger-btn"

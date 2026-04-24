@@ -14,8 +14,8 @@ export default function AIStream({
 
 			<div className="panel-body">
 				<div className="ai-stream-box">
-					{lines.map((line) => (
-						<p key={line}>{line}</p>
+					{lines.map((line, index) => (
+						<p key={`${index}-${line}`}>{line}</p>
 					))}
 				</div>
 

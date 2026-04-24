@@ -56,6 +56,7 @@ export const matchesApi = {
 export const reportsApi = {
 	list: () => api.get("/reports").then((res) => res.data),
 	generate: (payload) => api.post("/reports/generate", payload).then((res) => res.data),
+	aiGenerate: () => api.post("/reports/ai-generate").then((res) => res.data),
 	getPdfData: (id) => api.get(`/reports/${id}/pdf`).then((res) => res.data),
 	openPdfBlob: (id) => api.get(`/reports/${id}/pdf?format=pdf`, { responseType: "blob" }).then((res) => res.data)
 };
@@ -63,6 +64,7 @@ export const reportsApi = {
 export const analyticsApi = {
 	summary: () => api.get("/analytics/summary").then((res) => res.data),
 	zones: () => api.get("/analytics/zones").then((res) => res.data),
+	categories: () => api.get("/analytics/categories").then((res) => res.data),
 	timeline: () => api.get("/analytics/timeline").then((res) => res.data),
 	volunteerUtilization: () => api.get("/analytics/volunteer-utilization").then((res) => res.data),
 	heatmap: () => api.get("/analytics/heatmap").then((res) => res.data),
@@ -82,4 +84,11 @@ export const settingsApi = {
 
 export const activityApi = {
 	list: (params) => api.get("/activity", { params }).then((res) => res.data)
+};
+
+export const aiApi = {
+	generate: (payload) => api.post("/ai/generate", payload).then((res) => res.data),
+	match: (payload) => api.post("/ai/match", payload).then((res) => res.data),
+	assessDamage: (formData) => api.post("/ai/assess-damage", formData).then((res) => res.data),
+	query: (question) => api.post("/ai/query", { question }).then((res) => res.data)
 };

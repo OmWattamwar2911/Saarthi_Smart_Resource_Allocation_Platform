@@ -8,7 +8,7 @@ import AIStream from "../components/AIStream";
 import VolunteerCard from "../components/VolunteerCard";
 import { useNeeds, useCreateNeed } from "../hooks/useNeeds";
 import { useVolunteers } from "../hooks/useVolunteers";
-import { alertsApi, analyticsApi, matchesApi, reportsApi } from "../services/api";
+import { aiApi, alertsApi, analyticsApi, matchesApi, reportsApi } from "../services/api";
 
 function formatTimeAgo(timestamp) {
   if (!timestamp) return "just now";
@@ -50,6 +50,14 @@ export default function Dashboard() {
   const generateReport = useMutation({
     mutationFn: (payload) => reportsApi.generate(payload),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reports"] })
+  });
+
+  const liveReasoning = useMutation({
+    mutationFn: (prompt) => aiApi.generate({
+      prompt,
+      systemPrompt:
+        "You are a disaster relief AI coordinator. Return concise, operational reasoning in short lines suitable for a live dashboard stream."
+    })
   });
   const [showModal, setShowModal] = useState(false);
 
@@ -135,13 +143,59 @@ export default function Dashboard() {
     { label: "Districts covered", value: `${districtsCovered}` }
   ];
 
-  const streamLines = [
+  const defaultStreamLines = [
     `> Tracking ${openNeedsCount} open needs across the district...`,
     `> Monitoring ${activeVolunteersCount} active volunteers...`,
     `> Evaluating ${matches.length} AI-suggested assignments...`,
     "> Live synchronization enabled via Socket.IO events."
   ];
+
+  const [streamLines, setStreamLines] = useState(defaultStreamLines);
+
   const reportPeriod = new Date().toLocaleString("en-US", { month: "long", year: "numeric" });
+
+  async function handleRunLiveReasoning() {
+    setStreamLines([
+      "> Running AI operational analysis...",
+      "> Refreshing match recommendations...",
+      "> Preparing reasoning stream..."
+    ]);
+
+    try {
+      await generateMatches.mutateAsync();
+    } catch {
+      // Continue reasoning generation even if protected match generation fails for current session.
+    }
+
+    try {
+      const prompt = [
+        `Open needs: ${openNeedsCount}`,
+        `Active volunteers: ${activeVolunteersCount}`,
+        `Average match confidence: ${avgConfidence || 0}%`,
+        `Active alerts: ${alerts.filter((item) => item.status !== "Resolved").length}`,
+        `Top recommendations: ${liveRecommendations
+          .map((item) => `${item.need} -> ${item.volunteer} (${item.confidence}%)`)
+          .join("; ") || "No current recommendations"}`,
+        "Generate 4 short real-time reasoning lines with dispatch intent."
+      ].join("\n");
+
+      const response = await liveReasoning.mutateAsync(prompt);
+      const lines = String(response?.text || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .slice(0, 6)
+        .map((line) => (line.startsWith(">") ? line : `> ${line}`));
+
+      setStreamLines(lines.length ? lines : defaultStreamLines);
+    } catch {
+      setStreamLines([
+        "> AI reasoning service is temporarily unavailable.",
+        "> Using latest operational telemetry from local analytics.",
+        ...defaultStreamLines.slice(0, 2)
+      ]);
+    }
+  }
 
   async function handleGenerateImpactReport() {
     try {
@@ -231,8 +285,8 @@ export default function Dashboard() {
               {liveRecommendations.length === 0 ? (
                 <p className="muted">No AI matches generated yet.</p>
               ) : null}
-              {liveRecommendations.map((match) => (
-                <article className="match-card" key={match.id}>
+              {liveRecommendations.map((match, index) => (
+                <article className="match-card" key={match.id || `${match.need}-${index}`}>
                   <div className="match-top">
                     <p className="need-title">{match.need}</p>
                     <span className="match-score">{match.confidence}%</span>
@@ -259,8 +313,8 @@ export default function Dashboard() {
           <div className="panel-body">
             <div className="category-bars">
               {liveCategorySnapshot.length === 0 ? <p className="muted">No category data available.</p> : null}
-              {liveCategorySnapshot.map((item) => (
-                <div className="category-row" key={item.label}>
+              {liveCategorySnapshot.map((item, index) => (
+                <div className="category-row" key={`${item.label}-${index}`}>
                   <span className="muted">{item.label}</span>
                   <div className="category-track">
                     <span style={{ width: `${item.value * 5}%`, background: item.color }} />
@@ -272,8 +326,8 @@ export default function Dashboard() {
 
             <div className="forecast-grid">
               {liveForecast.length === 0 ? <p className="muted">No weekly trend data available.</p> : null}
-              {liveForecast.map((day) => (
-                <article className="forecast-day" key={day.day}>
+              {liveForecast.map((day, index) => (
+                <article className="forecast-day" key={`${day.day}-${index}`}>
                   <span className="muted">{day.day}</span>
                   <strong>{day.value}</strong>
                 </article>
@@ -286,9 +340,9 @@ export default function Dashboard() {
       <div className="three-col">
         <AIStream
           lines={streamLines}
-          onRunAnalysis={() => generateMatches.mutate()}
+          onRunAnalysis={handleRunLiveReasoning}
           onGenerateReport={handleGenerateImpactReport}
-          isRunning={generateMatches.isPending}
+          isRunning={generateMatches.isPending || liveReasoning.isPending}
           isGeneratingReport={generateReport.isPending}
         />
 
@@ -299,8 +353,8 @@ export default function Dashboard() {
           </header>
           <div className="panel-body leaderboard-list">
             {liveLeaderboard.length === 0 ? <p className="muted">No volunteer leaderboard data.</p> : null}
-            {liveLeaderboard.map((item) => (
-              <VolunteerCard key={item.rank} item={item} />
+            {liveLeaderboard.map((item, index) => (
+              <VolunteerCard key={`${item.name}-${item.rank || index}`} item={item} />
             ))}
           </div>
         </section>
@@ -312,8 +366,8 @@ export default function Dashboard() {
           </header>
           <div className="panel-body alert-list">
             {liveAlerts.length === 0 ? <p className="muted">No active alerts.</p> : null}
-            {liveAlerts.map((alert) => (
-              <article className="alert-row" key={alert.id}>
+            {liveAlerts.map((alert, index) => (
+              <article className="alert-row" key={alert.id || `${alert.level}-${index}`}>
                 <div>
                   <p className="need-title">{alert.level}</p>
                   <p className="need-meta">{alert.message}</p>

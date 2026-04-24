@@ -27,7 +27,7 @@ export const ALERT_STATUSES = ["Active", "Escalated", "Resolved"];
 
 export const MATCH_STATUSES = ["Pending", "Confirmed", "Rejected"];
 
-export const REPORT_TYPES = ["Deployment", "Utilization", "Supply", "Impact", "Donor"];
+export const REPORT_TYPES = ["Deployment", "Utilization", "Supply", "Impact", "Donor", "Comprehensive"];
 
 export const ZONES = [
   "Barmer Central",

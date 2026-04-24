@@ -18,6 +18,10 @@ export function isDbConnected() {
 
 let memoryServer = null;
 
+function isMd5Failure(error) {
+  return /MD5 check failed/i.test(String(error?.message || ""));
+}
+
 async function connectWithUri(uri, label) {
   await mongoose.connect(uri, {
     serverSelectionTimeoutMS: 10000
@@ -28,7 +32,21 @@ async function connectWithUri(uri, label) {
 
 async function startInMemoryMongo(reason = "no MONGO_URI configured") {
   if (!memoryServer) {
-    memoryServer = await MongoMemoryServer.create();
+    try {
+      memoryServer = await MongoMemoryServer.create();
+    } catch (error) {
+      if (!isMd5Failure(error)) {
+        throw error;
+      }
+
+      // In local development, cached mongodb-memory-server downloads can become corrupted.
+      // Retry once with MD5 verification disabled so the server can still boot.
+      console.warn("MongoDB in-memory binary checksum mismatch. Retrying with MD5 check disabled.");
+      process.env.MONGOMS_MD5_CHECK = "0";
+      memoryServer = await MongoMemoryServer.create({
+        binary: { checkMD5: false }
+      });
+    }
   }
 
   const memoryUri = memoryServer.getUri();

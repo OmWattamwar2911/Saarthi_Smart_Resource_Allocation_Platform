@@ -2,7 +2,7 @@
   "name": "saarthi-platform",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "dev": "node scripts/dev.mjs",
     "install:all": "cd backend && npm install && cd ../frontend && npm install",
     "seed": "cd backend && npm run seed"
   },
